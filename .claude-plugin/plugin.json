@@ -1,0 +1,13 @@
+{
+  "name": "navi",
+  "displayName": "Navi",
+  "version": "0.1.0",
+  "description": "Navi the Fairy audio hooks for Claude Code",
+  "author": {
+    "name": "Michael J. Mitchell",
+    "email": "michael@mitchtech.net",
+    "url": "https://github.com/mitchtech"
+  },
+  "license": "MIT",
+  "hooks": "./hooks/hooks.json"
+}

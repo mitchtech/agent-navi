@@ -1,0 +1,14 @@
+{
+  "name": "claude-navi",
+  "owner": {
+    "name": "mitchtech",
+    "url": "https://github.com/mitchtech"
+  },
+  "plugins": [
+    {
+      "name": "navi",
+      "source": ".",
+      "description": "Navi the Fairy audio hooks for Claude Code"
+    }
+  ]
+}
