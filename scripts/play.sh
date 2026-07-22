@@ -11,13 +11,29 @@ EVENT=$(printf '%s' "$INPUT" | jq -r '.hook_event_name // empty' 2>/dev/null || 
 FILE=""
 case "$EVENT" in
   UserPromptSubmit)
-    FILE="hey.wav"
+    # Randomize between Hey! and Look! so it doesn't get grating.
+    if [ $(( RANDOM % 2 )) -eq 0 ]; then
+      FILE="hey.wav"
+    else
+      FILE="look.wav"
+    fi
+    ;;
+  SessionStart)
+    FILE="hello.wav"
     ;;
   Notification)
     NTYPE=$(printf '%s' "$INPUT" | jq -r '.notification_type // empty' 2>/dev/null || true)
     case "$NTYPE" in
-      permission_prompt) FILE="hey.wav" ;;
-      idle_prompt)       FILE="listen.wav" ;;
+      permission_prompt)
+        # If the pending tool is Bash (or another destructive tool), escalate
+        # to "Watch out!" instead of the default "Hey!"
+        PENDING_TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // .pending_tool // empty' 2>/dev/null || true)
+        case "$PENDING_TOOL" in
+          Bash|Write|Edit|NotebookEdit) FILE="watchout.wav" ;;
+          *)                            FILE="hey.wav" ;;
+        esac
+        ;;
+      idle_prompt) FILE="listen.wav" ;;
       *) exit 0 ;;
     esac
     ;;

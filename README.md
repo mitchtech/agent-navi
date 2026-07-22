@@ -26,18 +26,30 @@ Or install locally from a clone:
 
 | Claude Code event | Navi clip | When it plays |
 |---|---|---|
-| `UserPromptSubmit` | **Hey!** | You submit a prompt |
-| `Notification` / `permission_prompt` | **Hey!** | Claude is asking to run something |
+| `SessionStart` | **Hello!** | You open a Claude Code session |
+| `UserPromptSubmit` | **Hey!** *or* **Look!** *(random)* | You submit a prompt |
+| `Notification` / `permission_prompt` (Bash / Write / Edit / NotebookEdit) | **Watch out!** | Claude wants permission for a destructive tool |
+| `Notification` / `permission_prompt` (other tools) | **Hey!** | Claude wants permission for something benign |
 | `Notification` / `idle_prompt` | **Listen!** | Claude is idle, waiting on you |
-| any other Notification subtype | *(silent)* | — |
+| any other event or Notification subtype | *(silent)* | — |
 
 No `Stop` hook — it fires on every subagent return and would be far too chatty.
+No `PreToolUse` — it fires on every tool call including auto-approved ones,
+which would turn Watch out! into a constant siren. The `permission_prompt`
+subtype is the actual "user, look at this" signal.
 
 ## Replacing the audio
 
-The bundled clips live in `audio/hey.wav` and `audio/listen.wav`. Swap in any
-16-bit PCM WAV of your choice — Skyward Sword Fi, Ocarina of Time Sheik, your
-own voice, whatever. Same filenames, same directory, done.
+The bundled clips live in `audio/`:
+
+- `hey.wav` — "Hey!"
+- `listen.wav` — "Listen!"
+- `hello.wav` — "Hello!"
+- `look.wav` — "Look!"
+- `watchout.wav` — "Watch out!"
+
+Swap in any 16-bit PCM WAV of your choice — Skyward Sword Fi, Ocarina of Time
+Sheik, your own voice, whatever. Same filenames, same directory, done.
 
 ## Requirements
 
@@ -49,8 +61,10 @@ own voice, whatever. Same filenames, same directory, done.
 Test the script directly, bypassing Claude Code:
 
 ```bash
+echo '{"hook_event_name":"SessionStart"}' | ./scripts/play.sh
 echo '{"hook_event_name":"UserPromptSubmit"}' | ./scripts/play.sh
-echo '{"hook_event_name":"Notification","notification_type":"permission_prompt"}' | ./scripts/play.sh
+echo '{"hook_event_name":"Notification","notification_type":"permission_prompt","tool_name":"Bash"}' | ./scripts/play.sh
+echo '{"hook_event_name":"Notification","notification_type":"permission_prompt","tool_name":"WebFetch"}' | ./scripts/play.sh
 echo '{"hook_event_name":"Notification","notification_type":"idle_prompt"}' | ./scripts/play.sh
 ```
 
