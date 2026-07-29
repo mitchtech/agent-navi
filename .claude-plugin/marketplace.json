@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "navi",
-      "source": ".",
+      "source": "./",
       "description": "Navi the Fairy audio hooks for Claude Code"
     }
   ]
