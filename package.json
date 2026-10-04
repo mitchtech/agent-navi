@@ -1,0 +1,20 @@
+{
+  "name": "agent-navi",
+  "version": "0.2.0",
+  "description": "Navi sound notifications for coding agents",
+  "type": "module",
+  "bin": { "agent-navi": "scripts/navi.mjs" },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check scripts/navi.mjs",
+    "doctor": "node scripts/navi.mjs doctor"
+  },
+  "files": ["scripts/navi.mjs", "audio", "plugin.json", ".claude-plugin", ".agents/plugins", "hooks", "docs", "CHANGELOG.md"],
+  "repository": { "type": "git", "url": "git+https://github.com/mitchtech/agent-navi.git" },
+  "homepage": "https://github.com/mitchtech/agent-navi",
+  "bugs": "https://github.com/mitchtech/agent-navi/issues",
+  "author": "Michael J. Mitchell <michael@mitchtech.net>",
+  "license": "MIT",
+  "keywords": ["navi", "audio", "notifications", "coding-agents", "claude-code", "codex"]
+}

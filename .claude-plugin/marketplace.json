@@ -1,5 +1,6 @@
 {
-  "name": "claude-navi",
+  "name": "agent-navi",
+  "description": "Navi sound notifications for coding agents",
   "owner": {
     "name": "mitchtech",
     "url": "https://github.com/mitchtech"
@@ -8,7 +9,7 @@
     {
       "name": "navi",
       "source": "./",
-      "description": "Navi the Fairy audio hooks for Claude Code"
+      "description": "Navi sound notifications for coding agents"
     }
   ]
 }

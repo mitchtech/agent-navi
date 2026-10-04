@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','codex'])).then(c=>{process.exitCode=c}).catch(()=>{})\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','codex'])).then(c=>{process.exitCode=c}).catch(()=>{})\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','codex'])).then(c=>{process.exitCode=c}).catch(()=>{})\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','codex'])).then(c=>{process.exitCode=c}).catch(()=>{})\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

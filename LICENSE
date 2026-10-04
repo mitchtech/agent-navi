@@ -20,11 +20,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
----
-
-The audio files in `audio/` are derived from *The Legend of Zelda: Ocarina of
-Time* (© Nintendo). They are included for personal, non-commercial use only.
-Nintendo retains all rights to the underlying character audio, including
-Navi's voice clips. No claim of ownership is made over the Navi voice clips;
-the MIT license above applies only to the source code and configuration in
-this repository.
+The MIT license above applies to source code and configuration only.
+Bundled audio is excluded; see audio/NOTICE.md for provenance and rights.
