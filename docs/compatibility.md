@@ -6,23 +6,25 @@ are required beyond Node.js 22 or newer.
 
 ## Event coverage
 
-| Shared event | Claude Code | Codex | Generic interface |
-|---|---|---|---|
-| Session started | `SessionStart`: startup, resume, clear | Same | `play session_started` |
-| Prompt submitted | `UserPromptSubmit` | Same | `play prompt_submitted` |
-| Approval required | `PermissionRequest`, delayed `Notification.permission_prompt` fallback | `PermissionRequest` | `play approval_required` |
-| Input required | `Notification`: idle_prompt, elicitation_dialog, elicitation_url_dialog, agent_needs_input | No native mapping in this release | `play input_required` |
-| Turn completed | `Stop`, optional | `Stop`, optional | `play turn_completed` |
-| Error | `StopFailure`, optional | No native mapping in this release | `play error` |
+| Shared event | Claude Code | Codex | Gemini CLI | Generic interface |
+|---|---|---|---|---|
+| Session started | `SessionStart`: startup, resume, clear | Same | `SessionStart` | `play session_started` |
+| Prompt submitted | `UserPromptSubmit` | Same | `BeforeAgent` | `play prompt_submitted` |
+| Approval required | `PermissionRequest`, delayed `Notification.permission_prompt` fallback | `PermissionRequest` | `Notification.ToolPermission` | `play approval_required` |
+| Input required | `Notification`: elicitation_dialog, elicitation_url_dialog, agent_needs_input | No native mapping in this release | No native mapping | `play input_required` |
+| Ready for input | `Notification.idle_prompt` | No native mapping | No native mapping | `play ready_for_input` |
+| Turn completed | `Stop`, optional | `Stop`, optional | `AfterAgent`, optional | `play turn_completed` |
+| Error | `StopFailure`, optional | No native mapping in this release | No native mapping | `play error` |
 
 The current Codex hook documentation does not list Claude's `Notification` or
 `StopFailure` events. Agent Navi does not infer questions from assistant prose
 or inspect transcripts. Other agents can map their own notifications to the
-generic interface. Gemini CLI and OpenCode do not have native adapters in this
-release.
+generic interface. Gemini CLI has a separately packaged native extension;
+OpenCode uses the generic interface in this release.
 
 Shell/file-change approval cues recognize `Bash`, `PowerShell`, `Write`, `Edit`,
-`NotebookEdit`, and Codex's `apply_patch`. Other tools use the general approval
+`NotebookEdit`, Codex's `apply_patch`, and Gemini's `run_shell_command`,
+`write_file`, and `replace` when a notification supplies tool identity. Other tools use the general approval
 sound. Classification uses tool identity, not command analysis. An MCP tool
 that writes data is not automatically classified as a file-change tool.
 
@@ -42,7 +44,8 @@ Compaction does not play Hello!.
 - Claude loads `.claude-plugin/plugin.json`, which references only `hooks/claude.json`.
 - Codex loads root `plugin.json`, whose `extensions.com.openai.hooks` references only `hooks/codex.json`.
 - Each host has its own marketplace named `agent-navi`, exposing plugin `navi`.
-- There is no default `hooks/hooks.json`, avoiding automatic discovery alongside explicit hook references.
+- The source package has no default `hooks/hooks.json`, avoiding double discovery. Only the generated Gemini extension contains that filename.
+- Gemini substitutes `${extensionPath}` into a hook environment variable and the bootstrap reads it as data. See [Gemini packaging](gemini.md).
 - Claude's exec-form arguments preserve paths with spaces and shell metacharacters.
 - Codex's Node bootstrap reads `PLUGIN_ROOT` from the environment, so plugin paths remain data rather than shell source on all operating systems.
 - Hook handlers return promptly and launch a detached, output-free playback worker.
@@ -57,7 +60,7 @@ every host event available everywhere.
 | OS | Audio backend | Notes |
 |---|---|---|
 | macOS | `afplay` | Built in |
-| Linux | `paplay`, then `pw-play`, then `aplay` | Install at least one; requires access to a local audio server/device |
+| Linux | `paplay`, then `pw-play`, then `aplay`, then `ffplay` | Install at least one; requires access to a local audio server/device |
 | Windows | `powershell.exe` and `System.Media.SoundPlayer` | No Bash; use PCM WAV |
 
 Node must be on the hook process's PATH. Restart desktop agents after installing
@@ -78,6 +81,7 @@ or avatar selection changes. The host drives pet activity and animation.
 | Surface | Sounds | Native pet |
 |---|---|---|
 | Claude Code | Native hooks | No integration provided |
+| Gemini CLI | Native extension | No integration provided |
 | Codex desktop | With trusted hooks | Compatible custom pet picker |
 | Codex CLI | Native hooks | Graphics-capable terminal required |
 | Codex IDE extension | Depends on host hook support | No picker or overlay |
@@ -92,7 +96,8 @@ See [pet installation and host limitations](pets.md).
 
 ## Validation and support baseline
 
-The update was developed against Claude Code 2.1.289 and Codex CLI 0.160.0.
+The baseline uses Claude Code 2.1.289 and Codex CLI 0.160.0. Gemini hook
+environment fields were checked against its released v0.62.0 source.
 Payload fixture tests cover the documented event contracts. CI runs the shared
 runtime on Node 22/24 across macOS, Linux, and Windows, with simulated players.
 Physical speaker playback and desktop PATH/trust configuration still depend
@@ -101,6 +106,8 @@ testing on every OS and agent surface.
 
 Sources checked October 4, 2026:
 
+- [Gemini hook reference](https://geminicli.com/docs/hooks/reference/)
+- [Gemini extension releases](https://geminicli.com/docs/extensions/releasing/)
 - [Claude hook reference](https://code.claude.com/docs/en/hooks)
 - [Claude plugin manifest reference](https://code.claude.com/docs/en/plugins-reference)
 - [Codex hook reference](https://learn.chatgpt.com/docs/hooks)

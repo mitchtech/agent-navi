@@ -1,11 +1,12 @@
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { configuration, DEFAULTS, locations, normalize, playback, player, reserve } from '../scripts/navi.mjs';
+import { configuration, DEFAULTS, locations, normalize, playback, player, reserve, status, updateConfiguration } from '../scripts/navi.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(ROOT, 'scripts', 'navi.mjs');
@@ -32,7 +33,8 @@ test('host payloads map to shared events and shell/edit approval cues', () => {
   assert.equal(notification.event, 'approval_required');
   assert.equal(notification.change, false);
   assert.equal(notification.fallback, true);
-  for (const notification_type of ['idle_prompt', 'elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input']) assert.equal(normalize({ hook_event_name: 'Notification', notification_type }, 'claude').event, 'input_required');
+  for (const notification_type of ['elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input']) assert.equal(normalize({ hook_event_name: 'Notification', notification_type }, 'claude').event, 'input_required');
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'idle_prompt' }, 'claude').event, 'ready_for_input');
   assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'idle_prompt' }, 'codex'), null);
   assert.equal(normalize({ hook_event_name: 'StopFailure' }, 'claude').event, 'error');
   assert.equal(normalize({ hook_event_name: 'StopFailure' }, 'codex'), null);
@@ -77,6 +79,7 @@ test('platform players prefer native backends and treat Windows filenames as dat
   assert.equal(player(audio, 'linux', name => name === 'pw-play')[0], 'pw-play');
   assert.equal(player(audio, 'linux', name => name === 'aplay')[0], 'aplay');
   assert.equal(player(audio, 'linux', () => true)[0], 'paplay');
+  assert.deepEqual(player(audio, 'linux', name => name === 'ffplay'), ['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', audio]);
   const windows = player(audio, 'win32', () => true);
   assert.equal(windows[0], 'powershell.exe');
   assert.ok(windows.at(-1).includes('$env:AGENT_NAVI_PLAY_FILE'));
@@ -215,4 +218,100 @@ test('metadata and host hook registrations stay consistent and load exactly one 
     }
   }
   assert.ok(!json('hooks/codex.json').hooks.Notification);
+});
+
+test('Gemini lifecycle and permission notifications use explicit host contracts', () => {
+  for (const [native, expected] of [['SessionStart', 'session_started'], ['BeforeAgent', 'prompt_submitted'], ['AfterAgent', 'turn_completed']]) {
+    assert.equal(normalize({ hook_event_name: native, session_id: 'gemini-session' }, 'gemini').event, expected);
+  }
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'ToolPermission', details: { tool_name: 'run_shell_command' } }, 'gemini').change, true);
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'ToolPermission' }, 'gemini').event, 'approval_required');
+  for (const payload of [{ hook_event_name: 'Notification', notification_type: 'permission_prompt' }, { hook_event_name: 'SessionStart', source: 'compact' }, { hook_event_name: 'AfterAgent', stop_hook_active: true }, { hook_event_name: 'PermissionRequest' }]) assert.equal(normalize(payload, 'gemini'), null);
+});
+
+test('Gemini hooks always return neutral JSON without exposing input or errors', t => {
+  const f = fixture(t);
+  writeFileSync(f.env.AGENT_NAVI_CONFIG, '{');
+  for (const input of ['bad json', '[]', '{}', '{"hook_event_name":"AfterAgent","prompt":"private"}']) {
+    const result = spawnSync(process.execPath, [SCRIPT, 'hook', '--agent', 'gemini'], { env: f.env, input, encoding: 'utf8', timeout: 3000 });
+    assert.equal(result.status, 0);
+    assert.deepEqual(JSON.parse(result.stdout), {});
+    assert.equal(result.stderr, '');
+  }
+});
+
+test('corrupted disposable timestamps recover without losing subsequent cooldown', t => {
+  const f = fixture(t);
+  const { paths, config } = f.settings();
+  const event = { agent: 'generic', session: 'one', event: 'session_started' };
+  reserve(paths, event, config, 10000)();
+  const key = createHash('sha256').update('generic:one:session_started').digest('hex');
+  const stamp = join(paths.state, `${key}.json`);
+  for (const corrupt of ['{', 'null']) {
+    writeFileSync(stamp, corrupt);
+    reserve(paths, event, config, 20000)();
+    assert.deepEqual(JSON.parse(readFileSync(stamp, 'utf8')), { time: 20000 });
+    assert.equal(reserve(paths, event, config, 20500), null);
+    assert.deepEqual(readdirSync(paths.state), [`${key}.json`]);
+  }
+});
+
+test('previews bypass event cooldown, leave timestamps alone, and retain overlap protection', t => {
+  const f = fixture(t);
+  const settings = f.settings();
+  settings.config.cooldownMs = 60000;
+  const event = { agent: 'generic', session: 'one', event: 'session_started' };
+  const options = { player: () => ['fake-player'], run: () => ({ status: 0 }) };
+  assert.equal(playback(event, settings, options), true);
+  const before = readdirSync(settings.paths.state).map(name => readFileSync(join(settings.paths.state, name), 'utf8'));
+  assert.equal(playback(event, settings, { ...options, clip: 'hey', preview: true }), true);
+  assert.equal(playback(event, settings, { ...options, clip: 'look', preview: true }), true);
+  assert.deepEqual(readdirSync(settings.paths.state).map(name => readFileSync(join(settings.paths.state, name), 'utf8')), before);
+  const release = reserve(settings.paths, event, settings.config, Date.now(), true);
+  assert.equal(playback(event, settings, { ...options, preview: true }), false);
+  release();
+});
+
+test('persistent controls preserve custom clips and make environment precedence visible', t => {
+  const f = fixture(t);
+  const env = { ...f.env }; delete env.AGENT_NAVI_MUTE;
+  writeFileSync(env.AGENT_NAVI_CONFIG, JSON.stringify({ audioDir: './my audio', cooldownMs: 2500, events: { prompt_submitted: { clips: ['look'] } } }));
+  updateConfiguration('mute', 'prompt_submitted', env);
+  assert.equal(configuration(env).config.events.prompt_submitted.enabled, false);
+  updateConfiguration('mute', 'all', env);
+  updateConfiguration('unmute', 'all', env);
+  assert.equal(configuration(env).config.muted, false);
+  assert.equal(configuration(env).config.events.prompt_submitted.enabled, false);
+  updateConfiguration('unmute', 'prompt_submitted', env);
+  updateConfiguration('preset', 'attention', env);
+  let current = configuration(env).config;
+  assert.equal(current.events.session_started.enabled, false);
+  assert.equal(current.events.ready_for_input.enabled, true);
+  assert.deepEqual(current.events.prompt_submitted.clips, ['look']);
+  assert.equal(current.cooldownMs, 2500);
+  assert.equal(JSON.parse(readFileSync(env.AGENT_NAVI_CONFIG)).audioDir, './my audio');
+  updateConfiguration('preset', 'default', env);
+  assert.equal(configuration(env).config.events.prompt_submitted.enabled, true);
+  updateConfiguration('unmute', 'all', { ...env, AGENT_NAVI_MUTE: '1' });
+  assert.equal(status({ ...env, AGENT_NAVI_MUTE: '1' }).config.muted, true);
+  assert.equal(status({ ...env, AGENT_NAVI_MUTE: '1' }).environmentOverrides.AGENT_NAVI_MUTE, '1');
+  const before = readFileSync(env.AGENT_NAVI_CONFIG, 'utf8');
+  for (const [command, target] of [['mute', undefined], ['unmute', 'typo'], ['preset', 'typo']]) assert.throws(() => updateConfiguration(command, target, env));
+  assert.equal(readFileSync(env.AGENT_NAVI_CONFIG, 'utf8'), before);
+  writeFileSync(env.AGENT_NAVI_CONFIG, '{');
+  assert.throws(() => updateConfiguration('mute', 'all', env));
+  assert.equal(readFileSync(env.AGENT_NAVI_CONFIG, 'utf8'), '{');
+});
+
+test('control CLI requires explicit targets and prints effective configuration', t => {
+  const f = fixture(t);
+  const env = { ...f.env }; delete env.AGENT_NAVI_MUTE;
+  const run = args => spawnSync(process.execPath, [SCRIPT, ...args], { env, encoding: 'utf8', timeout: 3000 });
+  assert.equal(run(['mute']).status, 1);
+  assert.equal(run(['mute', 'typo']).status, 1);
+  assert.equal(run(['mute', 'all']).status, 0);
+  assert.equal(JSON.parse(run(['status', '--json']).stdout).config.muted, true);
+  assert.equal(JSON.parse(run(['config', '--effective']).stdout).muted, true);
+  assert.ok(JSON.parse(run(['list', '--json']).stdout).clips.includes('listen'));
+  assert.equal(run(['unmute', 'all']).status, 0);
 });

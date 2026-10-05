@@ -7,26 +7,51 @@ The GitHub package remains usable without a registry publication.
 
 ## Release
 
-Keep the versions in `package.json`, `plugin.json`, and
-`.claude-plugin/plugin.json` consistent. The pet's `spriteVersionNumber: 2`
-describes the atlas format and does not follow the package version.
+`package.json` is the version authority. `npm run check` verifies that the
+portable, Claude, and Gemini manifests match it, and that a release tag matches
+`v` plus that version. Pet `spriteVersionNumber: 2` describes the atlas format.
+
+Prepare a release on a feature branch, update all manifest versions and the
+changelog, and run the contributor checks. After its PR merges into `main`, tag
+the merged commit and push the tag:
+
+```bash
+git tag v0.4.0
+git push origin v0.4.0
+```
+
+The release workflow checks Node 22/24 on macOS, Linux, and Windows, including
+actual offline tarball installation and Gemini hook execution. Publishing also
+requires the tagged commit to be contained in `main`. It validates the atlas,
+regenerates previews and checks for drift, then creates the GitHub release.
+The workflow publishes no npm registry package.
+
+Local release build:
 
 ```bash
 npm run check
 npm test
+npm run test:package
 python3 -m pip install -r requirements-dev.txt
 python3 scripts/check-pet.py
-python3 scripts/package-pet.py --with-package
+python3 scripts/build-assets.py
+python3 scripts/package-release.py
 ```
 
-The pet packager fixes ZIP entry order, timestamps, and file permissions, then
-checks each extracted file against the source. Publish the package tarball,
-pet ZIP, and a `SHA256SUMS` containing both artifacts. Attach release notes
-covering independent installation and verified host support.
+Release assets include the versioned npm tarball and pet ZIP, stable
+`agent-navi.tgz` and `agent-navi-pet.zip` aliases, three identically encoded
+platform-prefixed Gemini ZIPs, and the validated web export when available.
+`SHA256SUMS` covers every attached artifact. ZIP order, timestamps, permissions,
+and extracted source bytes are checked.
 
-The canonical sheet's original hashes are recorded in `pets/navi/NOTICE.md` and
-enforced by asset validation. Intentional future artwork edits require updating
-those records and explaining the change, rather than silently recompressing it.
+The Gemini archives contain the manifest at their root and their own default
+hook file. Platform prefixes make selection unambiguous among the other assets.
+See [Gemini integration](gemini.md). Never publish an archive with missing shared
+runtime files or add a default hook file to the source package.
+
+Original pet bytes are archived under `assets/original/navi`; the active bundle
+and any web derivative have separate revision records. Intentional repairs
+must preserve the archive and explain their method in the artwork notice.
 
 ## Pages and previews
 
@@ -40,14 +65,16 @@ before extracting previews. The website uses the canonical sheet directly,
 with reduced-motion support and user-initiated sound previews. No analytics,
 external fonts, or runtime telemetry are loaded.
 
-The Pages workflow validates and builds before deployment. Review the installed
+The Pages workflow checks out the latest published release tag, validates, and
+builds before deployment. It runs after successful releases, on main updates,
+or manually; unreleased main changes do not advertise unavailable downloads. Review the installed
 GitHub Actions versions when updating workflows. The repository homepage points
 to `https://mitchtech.github.io/agent-navi/`. Its social card is also available
 at `https://mitchtech.github.io/agent-navi/previews/social.png` for repository
 settings or shared links.
 
-When preparing another release, update the website and README's versioned ZIP
-and package links together. Check keyboard navigation, narrow viewports,
+The site builder derives version links from package metadata. README pet
+downloads use the stable latest-release asset name. Check keyboard navigation, narrow viewports,
 reduced motion, component choices, clipboard feedback, and all sound previews.
 
 ## npm and host directories
@@ -67,3 +94,20 @@ and its sharing workflow before adding one. [Submission rules](https://developer
 Measure project visibility using GitHub traffic and release downloads, plus npm
 downloads if publication is later enabled. No social outreach or third-party
 curated-list submissions are part of this release.
+
+## Discovery
+
+The repository homepage, concise About description, CI/release/license badges,
+and Pages previews form the primary discovery surface. Set the generated
+`assets/previews/social.png` as the repository's custom social preview through
+GitHub Settings. A Pages Open Graph image is separate from that repository setting.
+
+After the Gemini release is published, add `gemini-cli-extension` and
+`gemini-cli` repository topics. The official extension gallery discovers public
+repositories with that topic and a root extension manifest; listing depends on
+its validation and crawl schedule. No issue, email, or social outreach is needed.
+[Official discovery requirements](https://geminicli.com/docs/extensions/releasing/)
+
+Use authenticated GitHub traffic and release-download counts for aggregate
+visibility checks. Those counts can include development checks and are not
+reliable measurements of unique users. Keep the website free of analytics.

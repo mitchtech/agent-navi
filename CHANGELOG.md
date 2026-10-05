@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 - 2026-10-04
+
+- Add a self-contained Gemini CLI extension sharing the portable runtime.
+- Add persistent event mute/unmute, status, clip/event listing, and attention/default presets.
+- Bundle a model-invocable Navi control skill for supported agents.
+- Separate Claude ready notifications from input requests while preserving defaults. Existing input_required overrides apply to questions; configure ready_for_input separately for idle notifications.
+- Recover malformed cooldown timestamps and write them atomically.
+- Make previews bypass event cooldown and report overlap suppression.
+- Reject incomplete bundled pet files instead of reporting a false matching state.
+- Add an ffplay fallback for Linux audio.
+- Validate installed npm packages and packaged Gemini hooks in CI.
+- Add tag/version-checked releases, stable download assets, and release-based Pages builds.
+- Generate site version links and preview every animation and look direction.
+- Add contributor guidance and refresh completed design documentation.
+
 ## 0.3.0 - 2026-10-04
 
 - Include the original Navi v2 pet, preserving the manifest and sprite bytes.

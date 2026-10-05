@@ -2,14 +2,19 @@
 
 **Hey! Listen!**
 
+[![Checks](https://github.com/mitchtech/agent-navi/actions/workflows/check.yml/badge.svg)](https://github.com/mitchtech/agent-navi/actions/workflows/check.yml)
+[![Release](https://img.shields.io/github/v/release/mitchtech/agent-navi)](https://github.com/mitchtech/agent-navi/releases/latest)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
+[![Artwork: CC BY 4.0](https://img.shields.io/badge/artwork-CC_BY_4.0-blue)](pets/navi/LICENSE.txt)
+
 ![Navi's idle animation](assets/previews/idle.gif)
 
 [Preview Navi and the sounds](https://mitchtech.github.io/agent-navi/) ·
-[Download the pet](https://github.com/mitchtech/agent-navi/releases/download/v0.3.0/agent-navi-pet-v0.3.0.zip) ·
+[Download the pet](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip) ·
 [Releases](https://github.com/mitchtech/agent-navi/releases)
 
 Navi sound notifications for coding agents and an **independent Codex pet**.
-Native sound integrations for **Claude Code** and **Codex**, plus a small event
+Native sound integrations for **Claude Code**, **Codex**, and **Gemini CLI**, plus a small event
 interface for other agents and scripts. One shared player supports macOS,
 Linux, and Windows. The pet uses the host's native animation and activity states.
 
@@ -33,7 +38,7 @@ follow both installation sections. No background synchronization service runs.
 
 - **Node.js 22 or newer**, with `node` on the agent's `PATH`.
 - **macOS:** built-in `afplay`.
-- **Linux:** `paplay`, `pw-play`, or `aplay`, with a working local audio device.
+- **Linux:** `paplay`, `pw-play`, `aplay`, or `ffplay`, with a working local audio device.
 - **Windows:** Windows PowerShell (`powershell.exe`), using `System.Media.SoundPlayer`.
 
 No npm runtime dependencies, Bash, or `jq` are required. Windows hooks and audio
@@ -59,6 +64,26 @@ codex plugin add navi@agent-navi
 Review and trust the installed hooks in Codex's hook settings before using them.
 Installing or enabling the plugin does not automatically trust its hook commands.
 Restart the agent after installation or updates.
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/mitchtech/agent-navi
+```
+
+Use a release containing the Gemini extension assets (v0.4.0 or later). Gemini
+selects a self-contained ZIP for your platform from GitHub Releases. Review the
+extension's hook consent prompt and restart Gemini. For local development:
+
+```bash
+npm run gemini
+gemini extensions link ./dist/gemini
+```
+
+The repository root is for shared sources and discovery; Gemini's executable
+hook file is included in the generated extension, not the source root. Install
+published release assets rather than linking the repository root or a raw Git
+branch. See [Gemini integration](docs/gemini.md).
 
 ### Local development
 
@@ -91,7 +116,7 @@ playback to a detached worker so the agent can continue immediately.
 
 ### Download without Node.js
 
-1. Download [agent-navi-pet-v0.3.0.zip](https://github.com/mitchtech/agent-navi/releases/download/v0.3.0/agent-navi-pet-v0.3.0.zip).
+1. Download [agent-navi-pet.zip](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip).
 2. Extract its `navi` folder into `~/.codex/pets/`, or `pets/` inside your
    configured `CODEX_HOME`. Keep existing files if you already have a Navi pet.
 3. Refresh the desktop pet picker and choose Navi, or enter `/pets Navi` in a
@@ -100,7 +125,7 @@ playback to a detached worker so the agent can continue immediately.
 ### Install with the CLI
 
 ```bash
-npm install -g github:mitchtech/agent-navi#v0.3.0
+npm install -g github:mitchtech/agent-navi
 agent-navi pet install
 agent-navi doctor --pet
 ```
@@ -130,6 +155,7 @@ and troubleshooting](docs/pets.md) for supported hosts, selection, and removal.
 | `approval_required` | Hey! | On |
 | Approval for shell commands or file edits | Watch out! | On |
 | `input_required` | Listen! | On where available |
+| `ready_for_input` | Listen! | On for Claude idle notifications |
 | `turn_completed` | Listen! | Off |
 | `error` | Watch out! | Off |
 
@@ -137,6 +163,34 @@ Watch out! is a cue for shell/file-change approvals, not a claim that the
 operation is destructive. Subagent completion and context compaction are silent.
 Idle/input notifications and completion events are distinct; event availability
 depends on the host. See [compatibility](docs/compatibility.md).
+
+## Sound controls
+
+```bash
+agent-navi status
+agent-navi mute prompt_submitted
+agent-navi unmute prompt_submitted
+agent-navi mute all
+agent-navi unmute all
+agent-navi preset attention
+agent-navi preset default
+agent-navi list
+agent-navi config --effective
+```
+
+Changes persist immediately and apply to the next hook, without restarting.
+Global mute/unmute preserves individual event preferences. The attention preset
+enables approval, question, and ready notifications while disabling session,
+prompt, completion, and error cues. The default preset restores event enablement
+without changing your custom clips, audio directory, or global mute preference.
+
+The bundled `navi-control` skill also handles requests such as "mute Navi" or
+"turn off prompt sounds" inside supported agents. It uses the bundled CLI, so
+no global npm installation is needed. Standalone examples require the CLI above.
+`status --json` and `list --json` provide structured output.
+Existing `input_required` overrides now apply to questions; mute `ready_for_input`
+separately if you previously used that setting to silence Claude idle notifications. Status shows when
+`AGENT_NAVI_MUTE` overrides the saved global mute setting.
 
 ## Configuration
 
@@ -214,11 +268,12 @@ events, and the optional pet. `doctor --pet` checks only the pet and works
 without an audio player or valid sound configuration. Full `doctor` does not
 require an optional pet to be installed. These commands operate
 without playing anything. `preview` explicitly plays a clip even when
-muted, but still respects overlap prevention. Neither command changes settings.
+muted and bypasses event cooldown, but still respects overlap prevention. A busy
+player is reported explicitly instead of silently skipping the preview. Neither command changes settings.
 
 Native hooks exit successfully on malformed input, invalid configuration, missing
 audio/player, or playback failure. They produce no prose or permission decisions.
-Codex `Stop` emits only `{}` as neutral JSON required by that host. Run diagnostics
+Codex `Stop` and every Gemini hook emit only `{}` as neutral JSON required by those hosts. Run diagnostics
 when sounds are missing, and check Node's availability and hook trust settings.
 
 SSH, containers, WSL, and cloud sessions play on the machine executing the hook.
@@ -231,11 +286,11 @@ not submitted to OpenAI's public plugin directory.
 ```bash
 npm run check
 npm test
-npm pack --dry-run
+npm run test:package
 python3 -m pip install -r requirements-dev.txt
 python3 scripts/check-pet.py
 python3 scripts/build-assets.py
-python3 scripts/package-pet.py
+python3 scripts/package-release.py
 npm run site
 ```
 
@@ -247,7 +302,8 @@ macOS, Linux, and Windows. See [compatibility](docs/compatibility.md),
 Python/Pillow are development tools for asset validation and previews, not
 runtime dependencies. The ZIP packager uses Python's standard library.
 Preview generation never modifies the canonical sprite sheet. See
-[distribution maintenance](docs/distribution.md) for releases and the site.
+[distribution maintenance](docs/distribution.md) for releases and the site, and
+[contributor instructions](CONTRIBUTING.md) for the project workflow.
 
 ## Credits and license
 

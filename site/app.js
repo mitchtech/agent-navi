@@ -2,7 +2,9 @@ const sprite = document.querySelector('#sprite');
 const stateLabel = document.querySelector('#state-label');
 const motionButton = document.querySelector('#motion-toggle');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const states = { idle: [0, 6, 'idle'], working: [7, 6, 'working'], waiting: [6, 6, 'waiting for input'], review: [8, 6, 'reviewing'], failure: [5, 8, 'blocked'] };
+const states = { idle: [0, 6, 'idle'], working: [7, 6, 'working'], waiting: [6, 6, 'waiting for input'], review: [8, 6, 'reviewing'], failure: [5, 8, 'blocked'],
+  'moving-right': [1, 8, 'moving right'], 'moving-left': [2, 8, 'moving left'], waving: [3, 4, 'waving'], jumping: [4, 5, 'jumping'], neutral: [0, 1, 'looking forward', 6] };
+for (let direction = 0; direction < 16; direction++) states[`look-${direction}`] = [9 + Math.floor(direction / 8), 1, `looking ${document.querySelector(`[data-state="look-${direction}"]`).textContent.toLowerCase()}`, direction % 8];
 let state = 'idle';
 let frame = 0;
 let paused = false;
@@ -11,13 +13,13 @@ let timer;
 function animate() {
   clearInterval(timer);
   frame = 0;
-  const [row, count] = states[state];
-  sprite.style.backgroundPosition = `0px ${-row * 208}px`;
+  const [row, count, , start = 0] = states[state];
+  sprite.style.backgroundPosition = `${-start * 192}px ${-row * 208}px`;
   const stopped = paused || reducedMotion.matches;
   motionButton.textContent = reducedMotion.matches ? 'Reduced motion is on' : stopped ? 'Resume animation' : 'Pause animation';
   motionButton.disabled = reducedMotion.matches;
   motionButton.setAttribute('aria-pressed', String(stopped));
-  if (!stopped && !document.hidden) timer = setInterval(() => {
+  if (!stopped && !document.hidden && count > 1) timer = setInterval(() => {
     frame = (frame + 1) % count;
     sprite.style.backgroundPosition = `${-frame * 192}px ${-row * 208}px`;
   }, 160);

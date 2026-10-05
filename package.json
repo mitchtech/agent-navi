@@ -1,6 +1,6 @@
 {
   "name": "agent-navi",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "type": "module",
   "bin": {
@@ -11,9 +11,11 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check scripts/navi.mjs && node --check scripts/pet.mjs && node --check scripts/build-site.mjs && node --check site/app.js",
+    "check": "node --check scripts/navi.mjs && node --check scripts/pet.mjs && node --check scripts/build-site.mjs && node --check site/app.js && node --check scripts/build-gemini.mjs && node --check scripts/check-package.mjs && node scripts/check-project.mjs",
     "doctor": "node scripts/navi.mjs doctor",
-    "site": "node scripts/build-site.mjs"
+    "site": "node scripts/build-site.mjs",
+    "gemini": "node scripts/build-gemini.mjs",
+    "test:package": "node scripts/check-package.mjs"
   },
   "files": [
     "scripts/navi.mjs",
@@ -26,7 +28,9 @@
     "hooks",
     "docs",
     "CHANGELOG.md",
-    "assets/previews/idle.gif"
+    "assets/previews/idle.gif",
+    "skills",
+    "gemini-extension.json"
   ],
   "repository": {
     "type": "git",
@@ -46,6 +50,8 @@
     "pet",
     "custom-pet",
     "sprite",
-    "companion"
+    "companion",
+    "gemini-cli",
+    "gemini-cli-extension"
   ]
 }

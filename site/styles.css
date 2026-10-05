@@ -181,7 +181,8 @@ button:focus-visible,a:focus-visible,summary:focus-visible {
 .pet-stage {
   overflow:clip;
   position:relative;
-  height:490px;
+  min-height:490px;
+  height:auto;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -214,7 +215,8 @@ button:focus-visible,a:focus-visible,summary:focus-visible {
   border-color:#8be5cc10;
 }
 .sprite-wrap {
-  height:300px;
+  height:320px;
+  flex-shrink:0;
   width:100%;
   display:grid;
   place-items:center;
@@ -272,6 +274,19 @@ button:focus-visible,a:focus-visible,summary:focus-visible {
   border:1px solid var(--line);
   padding:2px 5px;
   border-radius:3px;
+}
+.direction-gallery {
+  margin-top:10px;
+  width:100%;
+  text-align:center;
+  z-index:1;
+}
+.direction-gallery summary {
+  color:var(--muted);
+  font-size:12px;
+}
+.direction-gallery .states {
+  margin-top:8px;
 }
 .states {
   display:flex;
@@ -645,11 +660,12 @@ footer p {
     max-width:350px;
   }
   .pet-stage {
-    height:390px;
+    min-height:390px;
+    height:auto;
     margin-top:20px;
   }
   .sprite-wrap {
-    height:230px;
+    height:250px;
   }
   .sprite {
     transform:scale(1.15);
