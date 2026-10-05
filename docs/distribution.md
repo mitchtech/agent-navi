@@ -40,7 +40,7 @@ python3 scripts/package-release.py
 
 Release assets include the versioned npm tarball and pet ZIP, stable
 `agent-navi.tgz` and `agent-navi-pet.zip` aliases, three identically encoded
-platform-prefixed Gemini ZIPs, and the validated web export when available.
+platform-prefixed Gemini ZIPs, and the validated nine-row web export.
 `SHA256SUMS` covers every attached artifact. ZIP order, timestamps, permissions,
 and extracted source bytes are checked.
 

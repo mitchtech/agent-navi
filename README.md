@@ -11,6 +11,7 @@
 
 [Preview Navi and the sounds](https://mitchtech.github.io/agent-navi/) ·
 [Download the pet](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip) ·
+[Web pet atlas](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet-web.webp) ·
 [Releases](https://github.com/mitchtech/agent-navi/releases)
 
 Navi sound notifications for coding agents and an **independent Codex pet**.
@@ -145,6 +146,9 @@ agent-navi pet uninstall
 Uninstall removes only unchanged, CLI-managed pet files. Manually installed,
 edited, or extra files are preserved for manual review. See [pet installation
 and troubleshooting](docs/pets.md) for supported hosts, selection, and removal.
+For web pet creation, use the [separate nine-row export](docs/pets.md#web-upload).
+The repaired local atlas and web derivative retain the original files in the
+repository and share the artwork license; they do not change existing installs.
 
 ## Sounds
 

@@ -14,7 +14,7 @@ selected design; current installation and support instructions live in
   npm publication remains deferred at the owner's request.
 - Structural validation and installer tests are distinct from verified native rendering.
 
-The approved follow-up preserves original files separately, repairs the current
+The v0.4.0 update preserves original files separately, repairs the current
 atlas, expands animation previews, and validates a separate web export. See the
 [artwork notice](../pets/navi/NOTICE.md) for revisions and hashes, and
 [distribution maintenance](distribution.md) for release procedures.

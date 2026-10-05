@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 - 2026-10-04
+## 0.4.0 - 2026-10-05
 
 - Add a self-contained Gemini CLI extension sharing the portable runtime.
 - Add persistent event mute/unmute, status, clip/event listing, and attention/default presets.
@@ -14,6 +14,8 @@
 - Add tag/version-checked releases, stable download assets, and release-based Pages builds.
 - Generate site version links and preview every animation and look direction.
 - Add contributor guidance and refresh completed design documentation.
+- Archive the original pet byte-for-byte; remove the isolated moving-left fragment and enlarge the 16 directional frames 1.5x with a reproducible lossless repair.
+- Add a validated nine-row web atlas with separate download and upload guidance.
 
 ## 0.3.0 - 2026-10-04
 
