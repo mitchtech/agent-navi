@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 - 2026-10-04
+
+- Include the original Navi v2 pet, preserving the manifest and sprite bytes.
+- Keep sound and pet installation fully independent.
+- Add pet install, status, uninstall, and pet-only diagnostics.
+- Preserve existing avatar selection and back up explicitly replaced pet folders.
+- Protect manual, modified, and additional files during removal.
+- Add artwork licensing and provenance separate from code and audio.
+- Publish a reproducible pet ZIP with checksums.
+- Add animated previews, a static project site, and GitHub Pages deployment.
+- Validate the atlas and installation across the existing OS/Node CI matrix.
+- Document native pet compatibility and local versus web format differences.
+
+
 ## 0.2.0 - 2026-10-04
 
 - Rename the project and marketplaces to Agent Navi / agent-navi.

@@ -177,6 +177,7 @@ test('both hosts execute registered commands with spaces and shell metacharacter
   const pluginRoot = join(f.root, "Navi's $folder (test)");
   mkdirSync(join(pluginRoot, 'scripts'), { recursive: true });
   copyFileSync(SCRIPT, join(pluginRoot, 'scripts', 'navi.mjs'));
+  copyFileSync(join(ROOT, 'scripts', 'pet.mjs'), join(pluginRoot, 'scripts', 'pet.mjs'));
   const env = { ...f.env, AGENT_NAVI_MUTE: '1', PLUGIN_ROOT: pluginRoot, CLAUDE_PLUGIN_ROOT: pluginRoot };
   for (const agent of ['claude', 'codex']) {
     const hooks = json(`hooks/${agent}.json`).hooks;

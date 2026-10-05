@@ -6,6 +6,7 @@ import { dirname, join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { petMain, petStatus, printPetStatus } from './pet.mjs';
 
 const SCRIPT = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT), '..');
@@ -189,6 +190,7 @@ function doctor() {
   const missing = CLIPS.filter(clip => !existsSync(join(config.audioDir, `${clip}.wav`)));
   console.log(`Clips: ${missing.length ? `missing ${missing.join(', ')}` : 'all five available'}`);
   for (const [event, rule] of Object.entries(config.events)) console.log(`${event}: ${rule.enabled ? rule.clips.join('/') : 'off'}`);
+  printPetStatus();
   return command && !missing.length ? 0 : 1;
 }
 
@@ -200,7 +202,16 @@ export async function main(argv = process.argv.slice(2)) {
       playback(JSON.parse(args[0]), configuration());
       return 0;
     }
-    if (command === 'doctor') return doctor();
+    if (command === 'pet') return petMain(args);
+    if (command === 'doctor') {
+      const { values } = parseArgs({ args, options: { pet: { type: 'boolean', default: false } } });
+      if (values.pet) {
+        const status = petStatus();
+        printPetStatus(status);
+        return status.state === 'matching' ? 0 : 1;
+      }
+      return doctor();
+    }
     if (command === 'config') {
       console.log(JSON.stringify(DEFAULTS, null, 2));
       return 0;
@@ -240,7 +251,7 @@ export async function main(argv = process.argv.slice(2)) {
       return 0;
     }
     if (command && !['--help', '-h'].includes(command)) throw new Error(`Unknown command: ${command}`);
-    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex\nagent-navi play EVENT [--session ID] [--tool TOOL]\nagent-navi preview hello|hey|listen|look|watchout\nagent-navi doctor\nagent-navi config');
+    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex\nagent-navi play EVENT [--session ID] [--tool TOOL]\nagent-navi preview hello|hey|listen|look|watchout\nagent-navi pet install [--replace]\nagent-navi pet status [--json]\nagent-navi pet uninstall\nagent-navi doctor [--pet]\nagent-navi config');
     return 0;
   } catch (error) {
     if (!quiet) console.error(`Agent Navi: ${error.message}`);

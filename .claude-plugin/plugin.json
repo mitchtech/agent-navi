@@ -1,13 +1,13 @@
 {
   "name": "navi",
-  "version": "0.2.0",
-  "description": "Navi sound notifications for coding agents",
+  "version": "0.3.0",
+  "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "author": {
     "name": "Michael J. Mitchell",
     "email": "michael@mitchtech.net",
     "url": "https://github.com/mitchtech"
   },
-  "homepage": "https://github.com/mitchtech/agent-navi",
+  "homepage": "https://mitchtech.github.io/agent-navi/",
   "repository": "https://github.com/mitchtech/agent-navi",
   "license": "MIT",
   "hooks": "./hooks/claude.json"

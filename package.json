@@ -1,20 +1,51 @@
 {
   "name": "agent-navi",
-  "version": "0.2.0",
-  "description": "Navi sound notifications for coding agents",
+  "version": "0.3.0",
+  "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "type": "module",
-  "bin": { "agent-navi": "scripts/navi.mjs" },
-  "engines": { "node": ">=22" },
+  "bin": {
+    "agent-navi": "scripts/navi.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test",
-    "check": "node --check scripts/navi.mjs",
-    "doctor": "node scripts/navi.mjs doctor"
+    "check": "node --check scripts/navi.mjs && node --check scripts/pet.mjs && node --check scripts/build-site.mjs && node --check site/app.js",
+    "doctor": "node scripts/navi.mjs doctor",
+    "site": "node scripts/build-site.mjs"
   },
-  "files": ["scripts/navi.mjs", "audio", "plugin.json", ".claude-plugin", ".agents/plugins", "hooks", "docs", "CHANGELOG.md"],
-  "repository": { "type": "git", "url": "git+https://github.com/mitchtech/agent-navi.git" },
-  "homepage": "https://github.com/mitchtech/agent-navi",
+  "files": [
+    "scripts/navi.mjs",
+    "scripts/pet.mjs",
+    "audio",
+    "pets",
+    "plugin.json",
+    ".claude-plugin",
+    ".agents/plugins",
+    "hooks",
+    "docs",
+    "CHANGELOG.md",
+    "assets/previews/idle.gif"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitchtech/agent-navi.git"
+  },
+  "homepage": "https://mitchtech.github.io/agent-navi/",
   "bugs": "https://github.com/mitchtech/agent-navi/issues",
   "author": "Michael J. Mitchell <michael@mitchtech.net>",
   "license": "MIT",
-  "keywords": ["navi", "audio", "notifications", "coding-agents", "claude-code", "codex"]
+  "keywords": [
+    "navi",
+    "audio",
+    "notifications",
+    "coding-agents",
+    "claude-code",
+    "codex",
+    "pet",
+    "custom-pet",
+    "sprite",
+    "companion"
+  ]
 }

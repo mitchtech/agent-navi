@@ -69,6 +69,27 @@ WSL is a Linux environment and needs a working Linux audio bridge. SSH,
 containers, cloud execution, and IDE remote sessions do not automatically route
 audio to your local speakers. This plugin does not deploy a relay or service.
 
+## Native pet compatibility
+
+Sounds and pets install independently. The `navi` plugin registers sound hooks
+only; the pet CLI or ZIP installs a local custom pet without hook registration
+or avatar selection changes. The host drives pet activity and animation.
+
+| Surface | Sounds | Native pet |
+|---|---|---|
+| Claude Code | Native hooks | No integration provided |
+| Codex desktop | With trusted hooks | Compatible custom pet picker |
+| Codex CLI | Native hooks | Graphics-capable terminal required |
+| Codex IDE extension | Depends on host hook support | No picker or overlay |
+| Other agents and scripts | Generic event interface | Depends on host; no adapter provided |
+| Headless or remote environments | Requires local audio access | No local display is implied |
+
+The original local v2 atlas includes 73 animation/direction cells plus an
+optional neutral-look cell, leaving 14 empty cells. Asset validation checks the
+manifest, transparency, cell occupancy, and original hashes. Installer tests
+check filesystem behavior rather than native rendering support on every OS.
+See [pet installation and host limitations](pets.md).
+
 ## Validation and support baseline
 
 The update was developed against Claude Code 2.1.289 and Codex CLI 0.160.0.

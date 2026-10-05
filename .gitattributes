@@ -1,0 +1,6 @@
+* text=auto eol=lf
+pets/navi/pet.json -text
+*.webp binary
+*.gif binary
+*.png binary
+*.wav binary

@@ -1,6 +1,6 @@
 {
   "name": "agent-navi",
-  "description": "Navi sound notifications for coding agents",
+  "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "owner": {
     "name": "mitchtech",
     "url": "https://github.com/mitchtech"
@@ -9,7 +9,7 @@
     {
       "name": "navi",
       "source": "./",
-      "description": "Navi sound notifications for coding agents"
+      "description": "Navi sound notifications for coding agents and an independent Codex pet"
     }
   ]
 }

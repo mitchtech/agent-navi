@@ -1,23 +1,31 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "navi",
-  "version": "0.2.0",
-  "description": "Navi sound notifications for coding agents",
+  "version": "0.3.0",
+  "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "author": {
     "name": "Michael J. Mitchell",
     "email": "michael@mitchtech.net",
     "url": "https://github.com/mitchtech"
   },
-  "homepage": "https://github.com/mitchtech/agent-navi",
+  "homepage": "https://mitchtech.github.io/agent-navi/",
   "repository": "https://github.com/mitchtech/agent-navi",
   "license": "MIT",
-  "keywords": ["audio", "notifications", "coding-agents", "navi"],
+  "keywords": [
+    "audio",
+    "notifications",
+    "coding-agents",
+    "navi",
+    "pet",
+    "custom-pet",
+    "companion"
+  ],
   "extensions": {
     "com.openai": {
       "hooks": "./hooks/codex.json",
       "interface": {
         "displayName": "Agent Navi",
-        "shortDescription": "Navi sound notifications for coding agents",
+        "shortDescription": "Navi sounds for agents, plus an optional Codex pet",
         "developerName": "Michael J. Mitchell",
         "category": "Productivity"
       }

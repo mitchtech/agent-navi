@@ -2,15 +2,34 @@
 
 **Hey! Listen!**
 
-Navi sound notifications for coding agents. Native integrations for **Claude
-Code** and **Codex**, plus a small event interface for any other agent or script.
-One shared player supports macOS, Linux, and Windows.
+![Navi's idle animation](assets/previews/idle.gif)
+
+[Preview Navi and the sounds](https://mitchtech.github.io/agent-navi/) ·
+[Download the pet](https://github.com/mitchtech/agent-navi/releases/download/v0.3.0/agent-navi-pet-v0.3.0.zip) ·
+[Releases](https://github.com/mitchtech/agent-navi/releases)
+
+Navi sound notifications for coding agents and an **independent Codex pet**.
+Native sound integrations for **Claude Code** and **Codex**, plus a small event
+interface for other agents and scripts. One shared player supports macOS,
+Linux, and Windows. The pet uses the host's native animation and activity states.
 
 Agent Navi plays the five Navi voice clips from *The Legend of Zelda: Ocarina
 of Time*. It runs locally, sends no telemetry, and never approves or blocks an
 agent's actions. Inspired by [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
 
-## Requirements
+## Choose your setup
+
+| Choice | Install | Requirements |
+|---|---|---|
+| Sounds only | [Agent plugin](#sounds-only) or standalone CLI | Node.js 22+ and local audio |
+| Pet only | [Pet ZIP or CLI](#pet-only) | A host with compatible custom pets; no Node needed for ZIP |
+| Both | Install each component independently | Both sets of requirements |
+
+Installing the sound plugin never installs or selects a pet. Installing the
+pet never enables audio hooks or changes your sound settings. To use both,
+follow both installation sections. No background synchronization service runs.
+
+## Sound requirements
 
 - **Node.js 22 or newer**, with `node` on the agent's `PATH`.
 - **macOS:** built-in `afplay`.
@@ -21,7 +40,7 @@ No npm runtime dependencies, Bash, or `jq` are required. Windows hooks and audio
 playback do not require Git Bash. A headless machine without an audio device
 cannot play sounds on your laptop automatically.
 
-## Install
+## Sounds only
 
 ### Claude Code
 
@@ -67,6 +86,40 @@ agent-navi preview listen
 All commands also work as `node /path/to/agent-navi/scripts/navi.mjs ...`.
 Standalone `play` and `preview` wait for the short clip; native hooks dispatch
 playback to a detached worker so the agent can continue immediately.
+
+## Pet only
+
+### Download without Node.js
+
+1. Download [agent-navi-pet-v0.3.0.zip](https://github.com/mitchtech/agent-navi/releases/download/v0.3.0/agent-navi-pet-v0.3.0.zip).
+2. Extract its `navi` folder into `~/.codex/pets/`, or `pets/` inside your
+   configured `CODEX_HOME`. Keep existing files if you already have a Navi pet.
+3. Refresh the desktop pet picker and choose Navi, or enter `/pets Navi` in a
+   supported interactive Codex CLI session.
+
+### Install with the CLI
+
+```bash
+npm install -g github:mitchtech/agent-navi#v0.3.0
+agent-navi pet install
+agent-navi doctor --pet
+```
+
+CLI installation copies the pet out of the package into your Codex home. It
+does not select it, install hooks, play audio, or require an audio player.
+Matching existing files remain untouched. A conflicting bundle requires
+`agent-navi pet install --replace`, which preserves the complete previous folder
+as a sibling backup. No symlink is installed or overwritten.
+
+```bash
+agent-navi pet status
+agent-navi pet status --json
+agent-navi pet uninstall
+```
+
+Uninstall removes only unchanged, CLI-managed pet files. Manually installed,
+edited, or extra files are preserved for manual review. See [pet installation
+and troubleshooting](docs/pets.md) for supported hosts, selection, and removal.
 
 ## Sounds
 
@@ -156,8 +209,11 @@ node scripts/navi.mjs doctor
 node scripts/navi.mjs preview hello
 ```
 
-`doctor` reports configuration, paths, player availability, clips, and enabled
-events without playing anything. `preview` explicitly plays a clip even when
+`doctor` reports configuration, paths, player availability, clips, enabled
+events, and the optional pet. `doctor --pet` checks only the pet and works
+without an audio player or valid sound configuration. Full `doctor` does not
+require an optional pet to be installed. These commands operate
+without playing anything. `preview` explicitly plays a clip even when
 muted, but still respects overlap prevention. Neither command changes settings.
 
 Native hooks exit successfully on malformed input, invalid configuration, missing
@@ -176,6 +232,11 @@ not submitted to OpenAI's public plugin directory.
 npm run check
 npm test
 npm pack --dry-run
+python3 -m pip install -r requirements-dev.txt
+python3 scripts/check-pet.py
+python3 scripts/build-assets.py
+python3 scripts/package-pet.py
+npm run site
 ```
 
 Tests simulate players and cover host payloads, configuration, deduplication,
@@ -183,11 +244,19 @@ overlap, failures, paths with spaces, and packaging. CI runs Node 22 and 24 on
 macOS, Linux, and Windows. See [compatibility](docs/compatibility.md),
 [migration](docs/migration.md), and [release notes](CHANGELOG.md).
 
+Python/Pillow are development tools for asset validation and previews, not
+runtime dependencies. The ZIP packager uses Python's standard library.
+Preview generation never modifies the canonical sprite sheet. See
+[distribution maintenance](docs/distribution.md) for releases and the site.
+
 ## Credits and license
 
 - Author: [Michael J. Mitchell / mitchtech](https://github.com/mitchtech).
 - Navi, *The Legend of Zelda: Ocarina of Time*: Nintendo.
 - Original plugin inspiration: [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
 
-Code and configuration: [MIT](LICENSE). Bundled audio is excluded from that
-license; see [audio provenance and rights notice](audio/NOTICE.md).
+Code and configuration: [MIT](LICENSE). Contributor rights in pet artwork:
+[CC BY 4.0](pets/navi/LICENSE.txt), with [provenance and credit](pets/navi/NOTICE.md).
+Bundled audio is excluded from both licenses; see the [audio rights
+notice](audio/NOTICE.md). Third-party character rights and trademarks remain
+with their owners.
