@@ -81,7 +81,10 @@ settings or shared links.
 
 The site builder derives version links from package metadata. README pet
 downloads use the stable latest-release asset name. Check keyboard navigation, narrow viewports,
-reduced motion, component choices, clipboard feedback, and all sound previews.
+reduced motion, component choices, clipboard feedback, and all sound previews in both
+the Night and Day themes. The theme follows the operating system until a visitor
+chooses one; `theme.js` stores that choice locally. `404.html` uses root-relative
+`/agent-navi/` paths because Pages serves it at any missing depth.
 
 ## npm and host directories
 
