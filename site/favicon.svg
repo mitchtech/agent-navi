@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#8fd8ff" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#8fd8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="40%" cy="36%" r="62%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".5" stop-color="#bfe9ff"/>
+      <stop offset="1" stop-color="#4aa8e0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="34" r="30" fill="url(#glow)"/>
+  <g fill="#dff4ff" fill-opacity=".72" stroke="#8fd8ff" stroke-width="1.5">
+    <ellipse cx="17" cy="20" rx="7" ry="13" transform="rotate(-40 17 20)"/>
+    <ellipse cx="47" cy="20" rx="7" ry="13" transform="rotate(40 47 20)"/>
+    <ellipse cx="19" cy="45" rx="4.5" ry="8" transform="rotate(-140 19 45)"/>
+    <ellipse cx="45" cy="45" rx="4.5" ry="8" transform="rotate(140 45 45)"/>
+  </g>
+  <circle cx="32" cy="35" r="12" fill="url(#orb)"/>
+</svg>

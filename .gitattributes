@@ -5,3 +5,4 @@ assets/original/navi/pet.json -text
 *.gif binary
 *.png binary
 *.wav binary
+*.woff2 binary
