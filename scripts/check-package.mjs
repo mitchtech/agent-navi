@@ -21,6 +21,9 @@ try {
   run(process.execPath, [npmCli, 'install', '--prefix', prefix, '--ignore-scripts', '--offline', '--no-audit', '--no-fund', join(temporary, packed.filename)]);
   const installed = join(prefix, 'node_modules', 'agent-navi');
   const extension = buildGemini(join(temporary, 'gemini'));
+  for (const [, image] of readFileSync(join(installed, 'README.md'), 'utf8').matchAll(/(?:src="|\]\()(assets\/[^")]+)/g)) {
+    assert.ok(existsSync(join(installed, image)), `README image missing from package: ${image}`);
+  }
   for (const bundle of [installed, extension]) {
     const env = { ...process.env, AGENT_NAVI_CONFIG: join(temporary, 'config.json'), AGENT_NAVI_STATE_DIR: join(temporary, 'state'), CODEX_HOME: join(temporary, 'codex'), AGENT_NAVI_PLUGIN_ROOT: bundle };
     delete env.AGENT_NAVI_MUTE;
