@@ -1,18 +1,30 @@
-# Agent Navi
+<h1 align="center">
+  <a href="https://mitchtech.github.io/agent-navi/"><img src="assets/previews/banner.png" alt="Agent Navi: Hey! Listen! Sound cues for coding agents and a native Codex pet." width="100%"></a>
+</h1>
 
-**Hey! Listen!**
+<p align="center">
+  <a href="https://github.com/mitchtech/agent-navi/actions/workflows/check.yml"><img src="https://github.com/mitchtech/agent-navi/actions/workflows/check.yml/badge.svg" alt="Checks"></a>
+  <a href="https://github.com/mitchtech/agent-navi/releases/latest"><img src="https://img.shields.io/github/v/release/mitchtech/agent-navi?color=d9b45a&labelColor=13221c" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-8fd8ff?labelColor=13221c" alt="Code: MIT"></a>
+  <a href="pets/navi/LICENSE.txt"><img src="https://img.shields.io/badge/artwork-CC_BY_4.0-8fd8ff?labelColor=13221c" alt="Artwork: CC BY 4.0"></a>
+</p>
 
-[![Checks](https://github.com/mitchtech/agent-navi/actions/workflows/check.yml/badge.svg)](https://github.com/mitchtech/agent-navi/actions/workflows/check.yml)
-[![Release](https://img.shields.io/github/v/release/mitchtech/agent-navi)](https://github.com/mitchtech/agent-navi/releases/latest)
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
-[![Artwork: CC BY 4.0](https://img.shields.io/badge/artwork-CC_BY_4.0-blue)](pets/navi/LICENSE.txt)
+<p align="center">
+  <a href="https://mitchtech.github.io/agent-navi/"><b>Preview Navi and the sounds</b></a> ·
+  <a href="https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip">Download the pet</a> ·
+  <a href="https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet-web.webp">Web pet atlas</a> ·
+  <a href="https://github.com/mitchtech/agent-navi/releases">Releases</a>
+</p>
 
-![Navi's idle animation](assets/previews/idle.gif)
-
-[Preview Navi and the sounds](https://mitchtech.github.io/agent-navi/) ·
-[Download the pet](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip) ·
-[Web pet atlas](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet-web.webp) ·
-[Releases](https://github.com/mitchtech/agent-navi/releases)
+<table align="center">
+  <tr>
+    <td align="center"><img src="assets/previews/idle.gif" width="128" alt="Navi idle animation"><br><sub>Idle</sub></td>
+    <td align="center"><img src="assets/previews/working.gif" width="128" alt="Navi working animation"><br><sub>Working</sub></td>
+    <td align="center"><img src="assets/previews/waiting.gif" width="128" alt="Navi waiting animation"><br><sub>Waiting</sub></td>
+    <td align="center"><img src="assets/previews/review.gif" width="128" alt="Navi review animation"><br><sub>Review</sub></td>
+    <td align="center"><img src="assets/previews/failure.gif" width="128" alt="Navi blocked animation"><br><sub>Blocked</sub></td>
+  </tr>
+</table>
 
 Navi sound notifications for coding agents and an **independent Codex pet**.
 Native sound integrations for **Claude Code**, **Codex**, and **Gemini CLI**, plus a small event

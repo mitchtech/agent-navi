@@ -23,7 +23,8 @@ git push origin v0.4.0
 The release workflow checks Node 22/24 on macOS, Linux, and Windows, including
 actual offline tarball installation and Gemini hook execution. Publishing also
 requires the tagged commit to be contained in `main`. It validates the atlas,
-regenerates previews and checks for drift, then creates the GitHub release.
+regenerates previews and compares their pixels with the committed files, then
+creates the GitHub release.
 The workflow publishes no npm registry package.
 
 Local release build:
@@ -60,10 +61,15 @@ builds `dist/site`, copying the canonical pet, audio, and preview assets from
 their source directories. Avoid maintaining duplicate sprite or audio files.
 
 `python3 scripts/build-assets.py` regenerates representative GIFs, a transparent
-idle frame, and a 1200 x 630 social card. It reads and validates the source pet
-before extracting previews. The website uses the canonical sheet directly,
+idle frame, a 1200 x 630 social card, a 1280 x 440 README banner, and a 180 x 180
+touch icon. It reads and validates the source pet before extracting previews.
+Cards use the site's self-hosted fonts with Pillow's basic layout engine, so
+their pixels match on every OS. `--check` renders to a temporary directory and
+fails if any committed preview differs by pixel; PNG bytes legitimately differ
+between platforms' zlib builds. The website uses the canonical sheet directly,
 with reduced-motion support and user-initiated sound previews. No analytics,
-external fonts, or runtime telemetry are loaded.
+third-party fonts, or runtime telemetry are loaded; `site/fonts` holds the
+OFL-licensed faces.
 
 The Pages workflow checks out the latest published release tag, validates, and
 builds before deployment. It runs after successful releases, on main updates,
@@ -75,7 +81,10 @@ settings or shared links.
 
 The site builder derives version links from package metadata. README pet
 downloads use the stable latest-release asset name. Check keyboard navigation, narrow viewports,
-reduced motion, component choices, clipboard feedback, and all sound previews.
+reduced motion, component choices, clipboard feedback, and all sound previews in both
+the Night and Day themes. The theme follows the operating system until a visitor
+chooses one; `theme.js` stores that choice locally. `404.html` uses root-relative
+`/agent-navi/` paths because Pages serves it at any missing depth.
 
 ## npm and host directories
 

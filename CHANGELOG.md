@@ -16,6 +16,10 @@
 - Add contributor guidance and refresh completed design documentation.
 - Archive the original pet byte-for-byte; remove the isolated moving-left fragment and enlarge the 16 directional frames 1.5x with a reproducible lossless repair.
 - Add a validated nine-row web atlas with separate download and upload guidance.
+- Restyle the site, social card, and README with self-hosted OFL fonts and a forest-night palette; add an SVG favicon, touch icon, and README banner.
+- Add a Day theme that follows the operating system or a saved toggle, a themed 404 page, and accessibility fixes: WCAG AA contrast in both themes, announced animation states, a keyboard-scrollable compatibility table, and screen-reader-friendly labels.
+- Ship every README preview image in the package and verify them in the package check.
+- Compare regenerated previews by pixel in releases, since PNG bytes vary with each platform's zlib.
 
 ## 0.3.0 - 2026-10-04
 

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check scripts/navi.mjs && node --check scripts/pet.mjs && node --check scripts/build-site.mjs && node --check site/app.js && node --check scripts/build-gemini.mjs && node --check scripts/check-package.mjs && node scripts/check-project.mjs",
+    "check": "node --check scripts/navi.mjs && node --check scripts/pet.mjs && node --check scripts/build-site.mjs && node --check site/app.js && node --check site/theme.js && node --check scripts/build-gemini.mjs && node --check scripts/check-package.mjs && node scripts/check-project.mjs",
     "doctor": "node scripts/navi.mjs doctor",
     "site": "node scripts/build-site.mjs",
     "gemini": "node scripts/build-gemini.mjs",
@@ -28,7 +28,12 @@
     "hooks",
     "docs",
     "CHANGELOG.md",
+    "assets/previews/banner.png",
     "assets/previews/idle.gif",
+    "assets/previews/working.gif",
+    "assets/previews/waiting.gif",
+    "assets/previews/review.gif",
+    "assets/previews/failure.gif",
     "skills",
     "gemini-extension.json"
   ],

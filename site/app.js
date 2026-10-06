@@ -48,6 +48,9 @@ document.querySelectorAll('[data-copy]').forEach(button => button.addEventListen
   try {
     await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).textContent);
     status.textContent = 'Commands copied.';
+    button.textContent = 'Copied';
+    button.classList.add('copied');
+    setTimeout(() => { button.textContent = 'Copy'; button.classList.remove('copied'); }, 2000);
   } catch { status.textContent = 'Clipboard unavailable. Select and copy the commands above.'; }
 }));
 
