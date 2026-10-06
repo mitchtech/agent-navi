@@ -46,6 +46,7 @@ export function petStatus(env = process.env) {
   const actual = hashes(path);
   const expected = hashes(BUNDLE);
   // The original local bundle has only the two host files. Notices are optional for matching it.
+  if (!expected['pet.json'] || !expected['spritesheet.webp']) throw new Error('Incomplete pet bundle: required manifest or sprite sheet is missing');
   const matching = FILES.every(name => actual[name] === expected[name] || (!actual[name] && !['pet.json', 'spritesheet.webp'].includes(name)));
   return { id: 'navi', path, state: matching ? 'matching' : 'modified', managed: owned(path), spriteVersionNumber: matching ? 2 : null };
 }

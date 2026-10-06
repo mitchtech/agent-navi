@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -11,7 +11,7 @@ import { petMain, petStatus, printPetStatus } from './pet.mjs';
 const SCRIPT = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT), '..');
 const CLIPS = ['hello', 'hey', 'listen', 'look', 'watchout'];
-const CHANGES = new Set(['Bash', 'PowerShell', 'Write', 'Edit', 'NotebookEdit', 'apply_patch']);
+const CHANGES = new Set(['Bash', 'PowerShell', 'Write', 'Edit', 'NotebookEdit', 'apply_patch', 'run_shell_command', 'write_file', 'replace']);
 export const DEFAULTS = {
   muted: false,
   audioDir: null,
@@ -21,6 +21,7 @@ export const DEFAULTS = {
     prompt_submitted: { enabled: true, clips: ['hey', 'look'] },
     approval_required: { enabled: true, clips: ['hey'], changeClips: ['watchout'] },
     input_required: { enabled: true, clips: ['listen'] },
+    ready_for_input: { enabled: true, clips: ['listen'] },
     turn_completed: { enabled: false, clips: ['listen'] },
     error: { enabled: false, clips: ['watchout'] },
   },
@@ -71,9 +72,67 @@ export function configuration(env = process.env) {
   return { config, paths };
 }
 
+// Temporary files live beside their destination so rename stays on the same filesystem.
+function atomicWrite(path, value) {
+  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+  const temporary = `${path}.${randomUUID()}.tmp`;
+  try {
+    writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
+    renameSync(temporary, path);
+  } finally { rmSync(temporary, { force: true }); }
+}
+
+export function updateConfiguration(command, target, env = process.env) {
+  // Validate existing preferences before writing; do not silently replace a broken user config.
+  const { paths } = configuration(env);
+  const value = existsSync(paths.config) ? JSON.parse(readFileSync(paths.config, 'utf8')) : {};
+  if (command === 'preset') {
+    if (!['default', 'attention'].includes(target)) throw new Error('Presets: default, attention');
+    value.events ||= {};
+    for (const [event, rule] of Object.entries(DEFAULTS.events)) {
+      value.events[event] ||= {};
+      value.events[event].enabled = target === 'attention'
+        ? ['approval_required', 'input_required', 'ready_for_input'].includes(event) : rule.enabled;
+    }
+  } else {
+    if (!['mute', 'unmute'].includes(command)) throw new Error('Unknown configuration action');
+    if (target === 'all') value.muted = command === 'mute';
+    else {
+      if (!Object.hasOwn(DEFAULTS.events, target)) throw new Error(`Specify an event or all: ${Object.keys(DEFAULTS.events).join(', ')}`);
+      value.events ||= {};
+      value.events[target] ||= {};
+      value.events[target].enabled = command === 'unmute';
+    }
+  }
+  atomicWrite(paths.config, value);
+  return configuration(env);
+}
+
+export function status(env = process.env) {
+  const settings = configuration(env);
+  return { ...settings, environmentOverrides: Object.fromEntries(
+    ['AGENT_NAVI_MUTE', 'AGENT_NAVI_AUDIO_DIR', 'AGENT_NAVI_CONFIG', 'AGENT_NAVI_STATE_DIR']
+      .filter(key => env[key] !== undefined).map(key => [key, env[key]])) };
+}
+
+function printStatus(settings) {
+  console.log(`Config: ${settings.paths.config}`);
+  console.log(`Muted: ${settings.config.muted}${Object.hasOwn(settings.environmentOverrides, 'AGENT_NAVI_MUTE') ? ' (AGENT_NAVI_MUTE overrides the saved preference)' : ''}`);
+  for (const [event, rule] of Object.entries(settings.config.events)) console.log(`${event}: ${rule.enabled ? rule.clips.join('/') : 'off'}`);
+}
+
 export function normalize(payload, agent) {
   if (!object(payload)) return null;
   const native = payload.hook_event_name;
+  if (agent === 'gemini') {
+    let event;
+    if (native === 'SessionStart' && (!payload.source || ['startup', 'resume', 'clear'].includes(payload.source))) event = 'session_started';
+    else if (native === 'BeforeAgent') event = 'prompt_submitted';
+    else if (native === 'AfterAgent' && !payload.stop_hook_active) event = 'turn_completed';
+    else if (native === 'Notification' && payload.notification_type === 'ToolPermission') event = 'approval_required';
+    return event ? { event, agent, session: typeof payload.session_id === 'string' ? payload.session_id : 'default',
+      change: CHANGES.has(payload.details?.tool_name), fallback: false } : null;
+  }
   // Only SessionStart/Stop suppress identified subagents; their approval prompts still need attention.
   if (['SessionStart', 'Stop'].includes(native) && payload.agent_id) return null;
   let event;
@@ -89,7 +148,8 @@ export function normalize(payload, agent) {
     if (payload.notification_type === 'permission_prompt') {
       event = 'approval_required';
       fallback = true;
-    } else if (['idle_prompt', 'elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input'].includes(payload.notification_type)) event = 'input_required';
+    } else if (payload.notification_type === 'idle_prompt') event = 'ready_for_input';
+    else if (['elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input'].includes(payload.notification_type)) event = 'input_required';
   }
   return event ? { event, agent, session: typeof payload.session_id === 'string' ? payload.session_id : 'default', change: CHANGES.has(payload.tool_name), fallback } : null;
 }
@@ -108,11 +168,12 @@ export function player(audio, platform = process.platform, available = command =
   }
   if (platform === 'linux') {
     for (const command of ['paplay', 'pw-play', 'aplay']) if (available(command)) return [command, audio];
+    if (available('ffplay')) return ['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', audio];
   }
   return null;
 }
 
-export function reserve(paths, event, config, now = Date.now()) {
+export function reserve(paths, event, config, now = Date.now(), preview = false) {
   mkdirSync(paths.state, { recursive: true, mode: 0o700 });
   const lock = join(paths.state, 'playback.lock');
   try {
@@ -126,15 +187,22 @@ export function reserve(paths, event, config, now = Date.now()) {
   }
   const release = () => rmSync(lock, { recursive: true, force: true });
   try {
+    if (preview) return release;
     const key = createHash('sha256').update(`${event.agent}:${event.session}:${event.event}`).digest('hex');
     const stamp = join(paths.state, `${key}.json`);
-    const previous = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : {};
+    let previous = {};
+    if (existsSync(stamp)) {
+      try { previous = JSON.parse(readFileSync(stamp, 'utf8')) || {}; } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+        // Timestamps are disposable cache data, unlike the user's configuration.
+      }
+    }
     const interval = event.fallback ? Math.max(10000, config.cooldownMs) : config.cooldownMs;
     if (Number.isFinite(previous.time) && now - previous.time < interval) {
       release();
       return null;
     }
-    writeFileSync(stamp, JSON.stringify({ time: now }), { mode: 0o600 });
+    atomicWrite(stamp, { time: now });
     // State stores hashes and timestamps only. Remove inactive session records after a day.
     for (const name of readdirSync(paths.state)) {
       if (/^[a-f0-9]{64}\.json$/.test(name) && now - statSync(join(paths.state, name)).mtimeMs > 86400000) rmSync(join(paths.state, name));
@@ -157,7 +225,7 @@ export function playback(event, settings, options = {}) {
   if (!existsSync(audio)) throw new Error(`Missing audio: ${audio}`);
   const command = (options.player || player)(audio);
   if (!command) throw new Error('No supported audio player found; run agent-navi doctor');
-  const release = reserve(paths, event, config);
+  const release = reserve(paths, event, config, Date.now(), options.preview === true);
   if (!release) return false;
   try {
     const result = (options.run || spawnSync)(command[0], command.slice(1), {
@@ -212,13 +280,35 @@ export async function main(argv = process.argv.slice(2)) {
       }
       return doctor();
     }
-    if (command === 'config') {
-      console.log(JSON.stringify(DEFAULTS, null, 2));
+    if (['status', 'config'].includes(command)) {
+      const { values } = parseArgs({ args, options: { json: { type: 'boolean' }, effective: { type: 'boolean' } } });
+      if (command === 'config' && !values.effective) {
+        console.log(JSON.stringify(DEFAULTS, null, 2));
+        return 0;
+      }
+      const current = status();
+      if (command === 'config') console.log(JSON.stringify(current.config, null, 2));
+      else if (values.json) console.log(JSON.stringify(current, null, 2));
+      else printStatus(current);
+      return 0;
+    }
+    if (['mute', 'unmute', 'preset'].includes(command)) {
+      if (args.length !== 1) throw new Error(`Usage: agent-navi ${command} ${command === 'preset' ? 'default|attention' : 'EVENT|all'}`);
+      updateConfiguration(command, args[0]);
+      printStatus(status());
+      return 0;
+    }
+    if (command === 'list') {
+      const { values } = parseArgs({ args, options: { json: { type: 'boolean' } } });
+      const catalog = { clips: CLIPS, events: Object.keys(DEFAULTS.events), presets: ['default', 'attention'] };
+      console.log(values.json ? JSON.stringify(catalog, null, 2) : Object.entries(catalog).map(([key, items]) => `${key}: ${items.join(', ')}`).join('\n'));
       return 0;
     }
     if (command === 'hook') {
       const { values } = parseArgs({ args, options: { agent: { type: 'string' } } });
-      if (!['claude', 'codex'].includes(values.agent)) throw new Error('Specify --agent claude or codex');
+      if (!['claude', 'codex', 'gemini'].includes(values.agent)) throw new Error('Specify --agent claude, codex, or gemini');
+      // Gemini always receives neutral JSON, including malformed-input/config paths.
+      if (values.agent === 'gemini') console.log('{}');
       let input = '';
       process.stdin.setEncoding('utf8');
       for await (const chunk of process.stdin) {
@@ -243,7 +333,10 @@ export async function main(argv = process.argv.slice(2)) {
         event.event = 'session_started';
         settings.config.muted = false;
         settings.config.events.session_started.enabled = true;
-        playback(event, settings, { clip: positionals[0] });
+        if (!playback(event, settings, { clip: positionals[0], preview: true })) {
+          console.error('Agent Navi: another sound is playing; try the preview again.');
+          return 1;
+        }
       } else {
         if (!Object.hasOwn(DEFAULTS.events, event.event)) throw new Error(`Events: ${Object.keys(DEFAULTS.events).join(', ')}`);
         playback(event, settings);
@@ -251,7 +344,7 @@ export async function main(argv = process.argv.slice(2)) {
       return 0;
     }
     if (command && !['--help', '-h'].includes(command)) throw new Error(`Unknown command: ${command}`);
-    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex\nagent-navi play EVENT [--session ID] [--tool TOOL]\nagent-navi preview hello|hey|listen|look|watchout\nagent-navi pet install [--replace]\nagent-navi pet status [--json]\nagent-navi pet uninstall\nagent-navi doctor [--pet]\nagent-navi config');
+    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex|gemini\nagent-navi play EVENT [--session ID] [--tool TOOL]\nagent-navi preview hello|hey|listen|look|watchout\nagent-navi pet install [--replace]\nagent-navi pet status [--json]\nagent-navi pet uninstall\nagent-navi doctor [--pet]\nagent-navi config [--effective]\nagent-navi status [--json]\nagent-navi mute EVENT|all\nagent-navi unmute EVENT|all\nagent-navi preset default|attention\nagent-navi list [--json]');
     return 0;
   } catch (error) {
     if (!quiet) console.error(`Agent Navi: ${error.message}`);

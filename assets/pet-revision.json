@@ -1,0 +1,18 @@
+{
+  "method": "Pillow lossless repair: remove isolated fragment; scale sixteen directional frames 1.5x within their cells",
+  "fragmentRectangle": [
+    939,
+    496,
+    950,
+    521
+  ],
+  "directionScale": 1.5,
+  "active": {
+    "pet.json": "816254a8e1cabc61bdb66d2010c084677f31a552e91cac8c1e33ff2f615e25b2",
+    "spritesheet.webp": "2ff8ada4209c4160d939e50b5ad723f2db8c25ae8c2a4e3fee57456ede344241"
+  },
+  "web": {
+    "file": "assets/exports/agent-navi-pet-web.webp",
+    "sha256": "1521788a54945bd269eae5e71f63dcac6ec5f81cf6bc349f1ac42a52b9cabed5"
+  }
+}

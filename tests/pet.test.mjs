@@ -117,3 +117,16 @@ test('an incomplete package fails before replacement and cleans its temporary fi
   assert.equal(readFileSync(join(target, 'personal.txt'), 'utf8'), 'keep');
   assert.deepEqual(readdirSync(dirname(target)), ['navi']);
 });
+
+test('missing required bundle files cannot make an empty target appear healthy', async t => {
+  const { root, env, target } = fixture(t);
+  const copy = join(root, 'empty-package');
+  mkdirSync(join(copy, 'scripts'), { recursive: true });
+  mkdirSync(join(copy, 'pets', 'navi'), { recursive: true });
+  copyFileSync(join(ROOT, 'scripts', 'pet.mjs'), join(copy, 'scripts', 'pet.mjs'));
+  mkdirSync(target, { recursive: true });
+  const incomplete = await import(pathToFileURL(join(copy, 'scripts', 'pet.mjs')).href);
+  assert.throws(() => incomplete.petStatus(env), /Incomplete pet bundle/);
+  assert.throws(() => incomplete.installPet(env, true), /Incomplete pet bundle/);
+  assert.deepEqual(readdirSync(target), []);
+});

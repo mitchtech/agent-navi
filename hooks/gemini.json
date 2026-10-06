@@ -1,0 +1,64 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-sessionstart",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-beforeagent",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-afteragent",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-notification",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
