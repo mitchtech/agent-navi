@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Document Claude Code installation with terminal `claude plugin` commands, matching Codex and Gemini CLI; the in-session `/plugin` form remains noted.
+- Use the same unpinned Gemini CLI install command on the site as in the README.
+
 ## 0.4.0 - 2026-10-05
 
 - Add a self-contained Gemini CLI extension sharing the portable runtime.

@@ -62,10 +62,13 @@ cannot play sounds on your laptop automatically.
 
 ### Claude Code
 
-```text
-/plugin marketplace add mitchtech/agent-navi
-/plugin install navi@agent-navi
+```bash
+claude plugin marketplace add mitchtech/agent-navi
+claude plugin install navi@agent-navi
 ```
+
+Inside a Claude Code session, the same steps are `/plugin marketplace add` and
+`/plugin install`.
 
 ### Codex
 
@@ -106,8 +109,8 @@ cd agent-navi
 node scripts/navi.mjs doctor
 ```
 
-Use `/plugin marketplace add /absolute/path/to/agent-navi` in Claude Code or
-`codex plugin marketplace add /absolute/path/to/agent-navi` in Codex, followed by
+Use `claude plugin marketplace add /absolute/path/to/agent-navi` for Claude Code or
+`codex plugin marketplace add /absolute/path/to/agent-navi` for Codex, followed by
 the same plugin installation command above.
 
 ### Standalone command
