@@ -75,13 +75,13 @@
       <div class="section-heading"><p class="eyebrow">Choose your companion</p><h2 id="install-title">Your setup. Your choice.</h2><p>Each component works on its own. Installing the pet never enables sounds.</p></div>
       <div class="install-choices" role="group" aria-label="Choose installation components" aria-controls="sounds-install pet-install"><button data-install="sounds" aria-pressed="false">Sounds only</button><button data-install="pet" aria-pressed="true">Pet only</button><button data-install="both" aria-pressed="false">Both</button></div>
       <div id="sounds-install" class="install-panel" hidden>
-        <h3>Sounds for your agent</h3><p>Node.js 22+ and a local audio player are required. Restart your agent after installation.</p>
+        <h3>Sounds for your agent</h3><p>Run these in your terminal. Node.js 22+ and a local audio player are required. Restart your agent after installation.</p>
         <div class="command-grid">
-          <div class="command"><div class="command-head"><h4>Claude Code</h4><button class="copy" data-copy="claude-command" aria-label="Copy Claude Code commands">Copy</button></div><pre id="claude-command"><code>/plugin marketplace add mitchtech/agent-navi
-/plugin install navi@agent-navi</code></pre></div>
+          <div class="command"><div class="command-head"><h4>Claude Code</h4><button class="copy" data-copy="claude-command" aria-label="Copy Claude Code commands">Copy</button></div><pre id="claude-command"><code>claude plugin marketplace add mitchtech/agent-navi
+claude plugin install navi@agent-navi</code></pre></div>
           <div class="command"><div class="command-head"><h4>Codex</h4><button class="copy" data-copy="codex-command" aria-label="Copy Codex commands">Copy</button></div><pre id="codex-command"><code>codex plugin marketplace add mitchtech/agent-navi
 codex plugin add navi@agent-navi</code></pre></div>
-          <div class="command"><div class="command-head"><h4>Gemini CLI</h4><button class="copy" data-copy="gemini-command" aria-label="Copy Gemini CLI command">Copy</button></div><pre id="gemini-command"><code>gemini extensions install https://github.com/mitchtech/agent-navi --ref v__VERSION__</code></pre></div>
+          <div class="command"><div class="command-head"><h4>Gemini CLI</h4><button class="copy" data-copy="gemini-command" aria-label="Copy Gemini CLI command">Copy</button></div><pre id="gemini-command"><code>gemini extensions install https://github.com/mitchtech/agent-navi</code></pre></div>
         </div>
         <p class="fineprint">Review and trust the sound hooks in Codex’s hook settings. <a href="https://github.com/mitchtech/agent-navi/blob/main/README.md#other-agents">Other agents use the standalone event interface.</a></p>
       </div>
