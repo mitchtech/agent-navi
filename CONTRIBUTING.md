@@ -34,3 +34,5 @@ manifest and atlas. `assets/previews` is generated from the current atlas. Keep
 preview generation reproducible and record asset revisions in the pet notice.
 
 Release and discovery procedures live in [distribution maintenance](docs/distribution.md).
+The [promotion kit](docs/promotion/README.md) contains public post drafts,
+captioned media, install guidance, and the owner-run campaign calendar.

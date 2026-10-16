@@ -1,0 +1,24 @@
+1
+00:00:00,000 --> 00:00:04,000
+A cue when it counts
+Sounds for Claude Code and Codex
+Illustrated sound preview - not a live host recording
+
+2
+00:00:04,000 --> 00:00:10,000
+Approval needed
+General approval cue: "Hey!"
+Illustrated sound preview - not a live host recording
+
+3
+00:00:10,000 --> 00:00:17,000
+Shell or edit approval
+Tool-category cue: "Watch out!"
+Illustrated sound preview - not a live host recording
+
+4
+00:00:17,000 --> 00:00:24,000
+Bring Navi along
+Local audio. No runtime telemetry.
+Optional Codex pet installs separately.
+Illustrated sound preview - not a live host recording
