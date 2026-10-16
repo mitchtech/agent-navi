@@ -9,6 +9,8 @@
   <a href="pets/navi/LICENSE.txt"><img src="https://img.shields.io/badge/artwork-CC_BY_4.0-8fd8ff?labelColor=13221c" alt="Artwork: CC BY 4.0"></a>
 </p>
 
+<p align="center"><b>Your coding agent says <i>Hey! Listen!</i> when it needs you.</b></p>
+
 <p align="center">
   <a href="https://mitchtech.github.io/agent-navi/"><b>Preview Navi and the sounds</b></a> ·
   <a href="https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip">Download the pet</a> ·
