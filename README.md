@@ -35,7 +35,8 @@ Agent Navi plays the five Navi voice clips from *The Legend of Zelda: Ocarina
 of Time*. It runs locally, sends no telemetry, and never approves or blocks an
 agent's actions. Inspired by [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
 Prefer a robot? The sibling project [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5)
-plays *Short Circuit* lines on the same events. Prefer an orc?
+plays *Short Circuit* lines on the same events and ships its own
+[Johnny 5 Codex pet](https://mitchtech.github.io/agent-johnny5/#pet). Prefer an orc?
 [Agent Warcraft](https://github.com/mitchtech/agent-warcraft) plays *Warcraft III*
 peon lines. Enable one per host.
 
