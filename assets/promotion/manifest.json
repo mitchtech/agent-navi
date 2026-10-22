@@ -1,0 +1,102 @@
+{
+  "kind": "illustrated-previews",
+  "dimensions": [
+    1080,
+    1080
+  ],
+  "fps": 15,
+  "sources": [
+    {
+      "path": "assets/previews/idle.gif",
+      "bytes": 88288,
+      "sha256": "57433e902d8e722cd2003f2e1f1516dd782c33e851e24600b83db473057730cb"
+    },
+    {
+      "path": "assets/previews/working.gif",
+      "bytes": 90344,
+      "sha256": "9be60fc1eed687278c14837cd5ad4e04580fbf9be7895aed60ff263d023cdcfe"
+    },
+    {
+      "path": "assets/previews/waiting.gif",
+      "bytes": 108718,
+      "sha256": "c356dbc92062ee19306dc64b4bd964b3bd6c2251ff18c9f0e3444c13bae84650"
+    },
+    {
+      "path": "audio/hey.wav",
+      "bytes": 30546,
+      "sha256": "0b230da60c91f1df884a55ac1b3702127b32adc91c44726ff5e1940bee039ce5"
+    },
+    {
+      "path": "audio/watchout.wav",
+      "bytes": 41730,
+      "sha256": "52da0ca91d6017d837c4bc84eff5973b4c1ef7f4f209e8c0014023b856fa706f"
+    },
+    {
+      "path": "site/fonts/alegreya-sans-latin-500-normal.woff2",
+      "bytes": 23928,
+      "sha256": "55b61d22cc7afd0bca94d17a84f0e92963b8f5216dbfbde56b2f6cf530c9b2dd"
+    },
+    {
+      "path": "site/fonts/cormorant-garamond-latin-wght-normal.woff2",
+      "bytes": 37640,
+      "sha256": "d80df8ff5aecd299a61549f9e29ab1ed0b9b05f4ea71d50fe978e07d5240b235"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "assets/promotion/attention-preview.mp4",
+      "bytes": 147379,
+      "sha256": "6348b17875cffffc4b67fe19030d1ce37280ec9e241981d918b570d2b9803079"
+    },
+    {
+      "path": "assets/promotion/attention-preview.png",
+      "bytes": 87713,
+      "sha256": "45c6cbcdaef11cbf3d463808b52fc6327657d680723ca5bf705ddccdc1820cc2"
+    },
+    {
+      "path": "assets/promotion/attention-preview.srt",
+      "bytes": 300,
+      "sha256": "11cae9e29f4a843c7420272490d044fe7a82fa9e6980d8809ab3b05ebbe11004"
+    },
+    {
+      "path": "assets/promotion/pet-preview.mp4",
+      "bytes": 151309,
+      "sha256": "11b46b136c6c1e323b4cc483ba85f39e525e26f38004f43dcacfc7cca39bde12"
+    },
+    {
+      "path": "assets/promotion/pet-preview.png",
+      "bytes": 87022,
+      "sha256": "c048d5b94e5820eeba82e4b1ff4b7d1bb317937d8d5cb69d20193ca309ad254f"
+    },
+    {
+      "path": "assets/promotion/pet-preview.srt",
+      "bytes": 447,
+      "sha256": "c53f917d5b29148fc7a7865cd285a78b93174b668161ee49b548e1d63a219e5b"
+    },
+    {
+      "path": "assets/promotion/sound-preview.mp4",
+      "bytes": 334191,
+      "sha256": "685c2a226c43173c4317607764c620f3e5d8a303f6c76ca6daf6b03768045392"
+    },
+    {
+      "path": "assets/promotion/sound-preview.png",
+      "bytes": 93054,
+      "sha256": "d540697a23737a4843e8dd53bde002d81bc378a4120ea77b0f39e184d91927d5"
+    },
+    {
+      "path": "assets/promotion/sound-preview.srt",
+      "bytes": 593,
+      "sha256": "55997b62a4811bbebde7413350221f628e4d9dde0de390cd037c08976504340d"
+    }
+  ],
+  "tools": {
+    "Pillow": "12.3.0",
+    "ffmpeg": "ffmpeg version 8.0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+  },
+  "credentials_used": [],
+  "limitations": [
+    "Not a live host or physical audio recording.",
+    "No claim of native pet rendering or hook execution in these videos.",
+    "Audio is assembled from the existing, separately licensed recordings."
+  ]
+}
