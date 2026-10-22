@@ -34,6 +34,8 @@ Linux, and Windows. The pet uses the host's native animation and activity states
 Agent Navi plays the five Navi voice clips from *The Legend of Zelda: Ocarina
 of Time*. It runs locally, sends no telemetry, and never approves or blocks an
 agent's actions. Inspired by [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
+Prefer a robot? The sibling project [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5)
+plays *Short Circuit* lines on the same events; enable one per host.
 
 ## Choose your setup
 
@@ -329,6 +331,7 @@ Preview generation never modifies the canonical sprite sheet. See
 - Author: [Michael J. Mitchell / mitchtech](https://github.com/mitchtech).
 - Navi, *The Legend of Zelda: Ocarina of Time*: Nintendo.
 - Original plugin inspiration: [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
+- Sibling project: [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5).
 
 Code and configuration: [MIT](LICENSE). Contributor rights in pet artwork:
 [CC BY 4.0](pets/navi/LICENSE.txt), with [provenance and credit](pets/navi/NOTICE.md).
