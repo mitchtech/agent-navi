@@ -7,11 +7,11 @@ duplicate sounds.
 
 ## Claude Code
 
-```text
-/plugin uninstall navi@claude-navi
-/plugin marketplace remove claude-navi
-/plugin marketplace add mitchtech/agent-navi
-/plugin install navi@agent-navi
+```bash
+claude plugin uninstall navi@claude-navi
+claude plugin marketplace remove claude-navi
+claude plugin marketplace add mitchtech/agent-navi
+claude plugin install navi@agent-navi
 ```
 
 ## Codex
