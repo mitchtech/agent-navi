@@ -70,6 +70,10 @@ pet picker rather than editing a selected avatar ID in its configuration.
 The host drives activity states, and the sound plugin drives its own event cues.
 Enabling both does not guarantee every visual state has a matching sound.
 
+Want a different companion? The sibling project Agent Johnny 5 ships a
+[Johnny 5 Codex pet](https://github.com/mitchtech/agent-johnny5/blob/main/docs/pets.md)
+that installs the same way.
+
 ## Web upload
 
 Download [agent-navi-pet-web.webp](https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet-web.webp)
