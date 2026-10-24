@@ -8,8 +8,8 @@ description: >-
   "preview a Navi sound", or asks to inspect or adjust Agent Navi notifications.
   DO NOT TRIGGER when: the user wants operating system volume controls, unrelated
   notification settings, Agent Johnny 5 controls (use johnny5-control), Agent
-  Warcraft controls (use warcraft-control), pet artwork repair, or pet selection
-  through the host picker.
+  Warcraft controls (use warcraft-control), Agent Rocky controls (use rocky-control),
+  pet artwork repair, or pet selection through the host picker.
 ---
 
 # Navi sound controls
