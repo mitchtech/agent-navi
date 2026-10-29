@@ -137,6 +137,12 @@ icon = frame(0, 0).resize((158, 171), Image.Resampling.LANCZOS)
 touch.alpha_composite(icon, (11, 2))
 touch.convert("RGB").save(OUT / "touch-icon.png")
 
+# The plugin listing icon: the touch icon redrawn at the 512 px the Claude plugin validator asks for.
+listing = Image.new("RGBA", (512, 512), BACKGROUND + (255,))
+glow(listing, (256, 273), 199, NAVI, 80)
+listing.alpha_composite(frame(0, 0).resize((449, 486), Image.Resampling.LANCZOS), (31, 6))
+listing.convert("RGB").save(OUT / "icon.png")
+
 
 def frames_of(path):
     with Image.open(path) as image:

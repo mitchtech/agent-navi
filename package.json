@@ -1,6 +1,6 @@
 {
   "name": "agent-navi",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "type": "module",
   "bin": {
@@ -28,6 +28,7 @@
     "hooks",
     "docs",
     "CHANGELOG.md",
+    "assets/previews/icon.png",
     "assets/previews/banner.png",
     "assets/previews/idle.gif",
     "assets/previews/working.gif",
