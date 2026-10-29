@@ -39,7 +39,9 @@ plays *Short Circuit* lines on the same events and ships its own
 [Johnny 5 Codex pet](https://mitchtech.github.io/agent-johnny5/#pet). Prefer an orc?
 [Agent Warcraft](https://github.com/mitchtech/agent-warcraft) plays *Warcraft III*
 peon lines. Prefer an Eridian? [Agent Rocky](https://github.com/mitchtech/agent-rocky)
-plays Rocky's lines from *Project Hail Mary*. Enable one per host.
+plays Rocky's lines from *Project Hail Mary*. Prefer a droid? [Agent Star Wars](https://github.com/mitchtech/agent-starwars)
+plays R2-D2 and C-3PO. Prefer an SCV? [Agent StarCraft](https://github.com/mitchtech/agent-starcraft) plays *StarCraft*
+unit lines. Enable one per host.
 
 ## Choose your setup
 
@@ -335,7 +337,7 @@ Preview generation never modifies the canonical sprite sheet. See
 - Author: [Michael J. Mitchell / mitchtech](https://github.com/mitchtech).
 - Navi, *The Legend of Zelda: Ocarina of Time*: Nintendo.
 - Original plugin inspiration: [thephw/claude-meseeks](https://github.com/thephw/claude-meseeks).
-- Sibling projects: [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5), [Agent Warcraft](https://github.com/mitchtech/agent-warcraft), and [Agent Rocky](https://github.com/mitchtech/agent-rocky).
+- Sibling projects: [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5), [Agent Warcraft](https://github.com/mitchtech/agent-warcraft), [Agent Rocky](https://github.com/mitchtech/agent-rocky), [Agent Star Wars](https://github.com/mitchtech/agent-starwars), and [Agent StarCraft](https://github.com/mitchtech/agent-starcraft).
 
 Code and configuration: [MIT](LICENSE). Contributor rights in pet artwork:
 [CC BY 4.0](pets/navi/LICENSE.txt), with [provenance and credit](pets/navi/NOTICE.md).
