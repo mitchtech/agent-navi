@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://mitchtech.github.io/agent-navi/#demo"><img src="assets/demo/demo-poster.jpg" width="720" alt="Agent Navi demo: a Claude Code session where Navi says Hey! as the prompt is submitted. Watch the 36-second video with sound."></a><br>
-  <sub><a href="https://mitchtech.github.io/agent-navi/#demo">Watch the 36-second demo with sound</a></sub>
+  <sub><a href="https://mitchtech.github.io/agent-navi/#demo">Watch the 36-second session demo with a reconstructed soundtrack</a></sub>
 </p>
 
 <p align="center">
