@@ -11,6 +11,7 @@ npm test
 npm run test:package
 python3 -m pip install -r requirements-dev.txt
 python3 scripts/check-pet.py
+python3 scripts/build-audio.py --check
 python3 scripts/build-assets.py
 python3 scripts/package-release.py
 npm run site

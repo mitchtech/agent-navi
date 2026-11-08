@@ -181,15 +181,61 @@ repository and share the artwork license; they do not change existing installs.
 | `prompt_submitted` | Random Hey! / Look! | On |
 | `approval_required` | Hey! | On |
 | Approval for shell commands or file edits | Watch out! | On |
+| Approval for a destructive command | Hey! Listen! | On |
 | `input_required` | Listen! | On where available |
 | `ready_for_input` | Listen! | On for Claude idle notifications |
 | `turn_completed` | Listen! | Off |
+| `hearts_low` | Watch out! | On with the heart meter |
+| `out_of_hearts` | Hey! Listen! | On for Claude |
 | `error` | Watch out! | Off |
+| `tool_failed` | Watch out! | Off |
+| `subagent_started` | Look! | Off |
+| `context_compacting` | Listen! | Off |
+| `session_ended` | Hey! | Off |
 
 Watch out! is a cue for shell/file-change approvals, not a claim that the
-operation is destructive. Subagent completion and context compaction are silent.
-Idle/input notifications and completion events are distinct; event availability
-depends on the host. See [compatibility](docs/compatibility.md).
+operation is destructive. Hey! Listen! is the destructive-command cue, made by
+joining the original Hey! and Listen! clips.
+
+**Destructive commands** are recognized from the approval request's command:
+`rm` with recursive and force flags, `git push --force` or `-f` (not
+`--force-with-lease`), `git reset --hard`, `git clean -f`, `DROP TABLE`/`DATABASE`/`SCHEMA`,
+`TRUNCATE TABLE`, `mkfs`, `dd of=`, `chmod -R 777`, `Remove-Item -Recurse -Force`,
+and `rmdir /s`. The cue is louder, not a safety check: it never blocks,
+approves, or logs the command. Only a yes/no flag leaves the hook process.
+
+Subagent completion is silent. Idle/input notifications and completion events
+are distinct; event availability depends on the host. See
+[compatibility](docs/compatibility.md).
+
+## Heart meter and usage alarms
+
+Claude Code's `StopFailure` hook reports why a turn failed. Agent Navi maps
+`rate_limit`, `billing_error`, and `account_on_hold` to `out_of_hearts` and
+anything else to `error`. A `quota_auto_resume_disabled` notification also
+plays `out_of_hearts`.
+
+For a warning before you run out, add the heart meter to your status line. Its
+five heart containers show how much of your tightest limit is left, 20% each.
+It plays Watch out! once per session when usage crosses `hearts.lowPercent`
+(80% by default), then Hey! Listen! at 100%. The status line runs outside the
+plugin, so it needs the [standalone command](#standalone-command):
+
+```json
+{ "statusLine": { "type": "command", "command": "agent-navi statusline" } }
+```
+
+```text
+🧚 ♥♡♡♡♡ 15% (7d) low
+```
+
+The meter reads Claude Code's 5-hour, 7-day, and spend-limit percentages when
+your plan reports them. Set `hearts.budgetUsd` to also count a per-session
+dollar budget against `cost.total_cost_usd`. A level re-arms when usage falls
+back below it, as when a limit window resets. To keep an existing status line,
+call `agent-navi statusline` from your own script with the same JSON on stdin.
+Codex and Gemini have no equivalent hook; scripts there can run
+`agent-navi play out_of_hearts`.
 
 ## Sound controls
 
@@ -207,8 +253,8 @@ agent-navi config --effective
 
 Changes persist immediately and apply to the next hook, without restarting.
 Global mute/unmute preserves individual event preferences. The attention preset
-enables approval, question, and ready notifications while disabling session,
-prompt, completion, and error cues. The default preset restores event enablement
+enables approval, question, ready, and usage-limit notifications while disabling
+session, prompt, completion, error, and the other optional cues. The default preset restores event enablement
 without changing your custom clips, audio directory, or global mute preference.
 
 The bundled `navi-control` skill also handles requests such as "mute Navi" or
@@ -233,9 +279,10 @@ Create the parent directory and save the settings you want to override:
   "muted": false,
   "audioDir": "./audio",
   "cooldownMs": 1000,
+  "hearts": { "budgetUsd": null, "lowPercent": 80 },
   "events": {
     "prompt_submitted": { "clips": ["hey"] },
-    "approval_required": { "clips": ["hey"], "changeClips": ["watchout"] },
+    "approval_required": { "clips": ["hey"], "changeClips": ["watchout"], "dangerClips": ["hey-listen"] },
     "turn_completed": { "enabled": true },
     "error": { "enabled": true }
   }
@@ -244,12 +291,14 @@ Create the parent directory and save the settings you want to override:
 
 Omit `audioDir` to use bundled clips. Relative directories resolve from the
 configuration file's directory. Custom audio directories must contain
-`hello.wav`, `hey.wav`, `listen.wav`, `look.wav`, and `watchout.wav`; use 16-bit
+`hello.wav`, `hey.wav`, `listen.wav`, `look.wav`, `watchout.wav`, and
+`hey-listen.wav`; use 16-bit
 PCM WAV for compatibility with all players. Copy the clips to your own directory
 before replacing them. Installed plugin files can be overwritten by updates.
 
 An event's `clips` array selects one sound randomly; use one entry for a fixed
-sound. `changeClips` applies only to shell/file-change approvals. Each event
+sound. `changeClips` applies only to shell/file-change approvals, and
+`dangerClips` to destructive-command approvals, which take priority. Each event
 accepts `enabled: false` to mute it independently. `agent-navi config` prints
 the complete default configuration without writing anything.
 

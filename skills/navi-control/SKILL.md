@@ -26,8 +26,9 @@ path, rather than assuming a global `agent-navi` executable is installed.
 
 Use `list` to resolve supported event and clip names. Translate a clear request
 into the corresponding event: prompt sounds are `prompt_submitted`, approval
-sounds are `approval_required`, questions are `input_required`, and ready
-notifications are `ready_for_input`. Ask only when the requested event is unclear.
+sounds are `approval_required`, questions are `input_required`, ready
+notifications are `ready_for_input`, and usage-limit warnings are `hearts_low` and
+`out_of_hearts`. Ask only when the requested event is unclear.
 
 Change preferences only when the user requests that change. Inspection and
 troubleshooting do not imply muting, unmuting, applying a preset, or playing audio.

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { configuration, DEFAULTS, locations, normalize, playback, player, reserve, status, updateConfiguration } from '../scripts/navi.mjs';
+import { configuration, dangerous, DEFAULTS, hearts, locations, meterCue, normalize, playback, player, reserve, status, updateConfiguration } from '../scripts/navi.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(ROOT, 'scripts', 'navi.mjs');
@@ -314,4 +314,148 @@ test('control CLI requires explicit targets and prints effective configuration',
   assert.equal(JSON.parse(run(['config', '--effective']).stdout).muted, true);
   assert.ok(JSON.parse(run(['list', '--json']).stdout).clips.includes('listen'));
   assert.equal(run(['unmute', 'all']).status, 0);
+});
+
+test('compaction and session end map for Claude, Codex, and Gemini but stay silent for subagents', () => {
+  for (const agent of ['claude', 'codex']) {
+    assert.equal(normalize({ hook_event_name: 'PreCompact', trigger: 'auto' }, agent).event, 'context_compacting');
+    assert.equal(normalize({ hook_event_name: 'SessionEnd', reason: 'other' }, agent).event, 'session_ended');
+    for (const hook_event_name of ['PreCompact', 'SessionEnd']) assert.equal(normalize({ hook_event_name, agent_id: 'child' }, agent), null);
+  }
+  assert.equal(normalize({ hook_event_name: 'PreCompress' }, 'gemini').event, 'context_compacting');
+  assert.equal(normalize({ hook_event_name: 'SessionEnd' }, 'gemini').event, 'session_ended');
+  assert.equal(normalize({ hook_event_name: 'PreCompress' }, 'claude'), null);
+  for (const event of ['context_compacting', 'session_ended']) assert.equal(DEFAULTS.events[event].enabled, false);
+});
+
+test('destructive commands are recognized without flagging routine ones', () => {
+  for (const command of ['rm -rf build', 'rm -r -f x', 'rm --recursive --force x', 'sudo rm -fr /', 'rm -Rf x', 'git push --force origin main', 'git push -f',
+    'git reset --hard HEAD~1', 'git clean -fdx', 'psql -c "DROP TABLE users"', 'TRUNCATE TABLE x', 'mkfs.ext4 /dev/sda1', 'dd if=x of=/dev/sda',
+    'chmod -R 777 /var', 'Remove-Item -Recurse -Force C:\\x', 'rmdir /s /q build', 'cd /tmp && rm -rf cache']) assert.equal(dangerous(command), true, command);
+  for (const command of ['rm file.txt', 'rm -r dir', 'rm -f file', 'git push', 'git push --force-with-lease', 'git reset HEAD~1', 'git clean -n', 'echo rm',
+    'ls -rf', 'grep -rf patterns x', 'npm run format', 'drop tables', 'chmod 755 x', 'rm x; ls -rf', '', undefined, 42]) assert.equal(dangerous(command), false, String(command));
+});
+
+test('approvals for destructive commands are flagged in every host without carrying the command', () => {
+  const secret = 'rm -rf /home/someone/private-project';
+  for (const agent of ['claude', 'codex']) {
+    const event = normalize({ hook_event_name: 'PermissionRequest', tool_name: 'Bash', tool_input: { command: secret }, session_id: 's' }, agent);
+    assert.equal(event.danger, true);
+    assert.equal(event.change, true);
+    assert.ok(!JSON.stringify(event).includes('private-project'));
+    assert.equal(normalize({ hook_event_name: 'PermissionRequest', tool_name: 'Bash', tool_input: { command: 'npm test' } }, agent).danger, false);
+    assert.equal(normalize({ hook_event_name: 'PermissionRequest', tool_name: 'WebFetch' }, agent).danger, false);
+    assert.equal(normalize({ hook_event_name: 'UserPromptSubmit', tool_input: { command: secret } }, agent).danger, false);
+  }
+  const gemini = normalize({ hook_event_name: 'Notification', notification_type: 'ToolPermission', details: { tool_name: 'run_shell_command', command: secret } }, 'gemini');
+  assert.equal(gemini.danger, true);
+  assert.ok(!JSON.stringify(gemini).includes('private-project'));
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'permission_prompt' }, 'claude').danger, false);
+});
+
+test('clip priority is danger, then change, then the event clips', t => {
+  const f = fixture(t);
+  const settings = f.settings();
+  settings.config.cooldownMs = 0;
+  const played = [];
+  const play = event => {
+    playback({ agent: 'generic', session: String(played.length), ...event }, settings, { player: audio => ['fake', audio], run: (command, args) => { played.push(args[0].split(/[\\/]/).at(-1)); return { status: 0 }; } });
+    return played.at(-1);
+  };
+  assert.equal(play({ event: 'approval_required', danger: true, change: true }), 'hey-listen.wav');
+  assert.equal(play({ event: 'approval_required', change: true }), 'watchout.wav');
+  assert.equal(play({ event: 'approval_required' }), 'hey.wav');
+  settings.config.events.error.enabled = true;
+  assert.equal(play({ event: 'error', danger: true }), 'watchout.wav');
+  const silent = spawnSync(process.execPath, [SCRIPT, 'play', 'approval_required', '--tool', 'Bash', '--command', 'rm -rf x'], { env: { ...f.env, AGENT_NAVI_AUDIO_DIR: join(f.root, 'missing') }, encoding: 'utf8', timeout: 3000 });
+  assert.match(silent.stderr, /Missing audio: .*hey-listen\.wav/);
+});
+
+test('playback state never stores commands, sessions, or prompts in readable form', t => {
+  const f = fixture(t);
+  const settings = f.settings();
+  const payload = { hook_event_name: 'PermissionRequest', tool_name: 'Bash', tool_input: { command: 'rm -rf secret-dir' }, session_id: 'secret-session', prompt: 'secret prompt' };
+  playback(normalize(payload, 'claude'), settings, { player: () => ['fake'], run: () => ({ status: 0 }) });
+  const files = readdirSync(settings.paths.state);
+  assert.equal(files.length, 1);
+  assert.match(files[0], /^[a-f0-9]{64}\.json$/);
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(settings.paths.state, files[0]), 'utf8'))), ['time']);
+});
+
+test('every configured clip ships as audio and the catalog matches the provenance manifest', () => {
+  const { clips } = JSON.parse(spawnSync(process.execPath, [SCRIPT, 'list', '--json'], { encoding: 'utf8' }).stdout);
+  assert.deepEqual(json('audio/sources.json').clips.map(clip => clip.id), clips);
+  assert.deepEqual(readdirSync(join(ROOT, 'audio')).filter(name => name.endsWith('.wav')).map(name => name.slice(0, -4)).sort(), [...clips].sort());
+  for (const clip of Object.values(DEFAULTS.events).flatMap(rule => [...rule.clips, ...(rule.changeClips || []), ...(rule.dangerClips || [])])) assert.ok(clips.includes(clip), clip);
+  for (const clip of clips) assert.equal(readFileSync(join(ROOT, 'audio', `${clip}.wav`)).subarray(0, 4).toString(), 'RIFF', clip);
+});
+
+test('StopFailure types, quota notifications, subagent starts, and tool failures map to Navi cues', () => {
+  for (const error of ['rate_limit', 'billing_error', 'account_on_hold']) assert.equal(normalize({ hook_event_name: 'StopFailure', error }, 'claude').event, 'out_of_hearts');
+  for (const error of ['max_output_tokens', 'server_error', 'overloaded', 'invalid_request', 'unknown', undefined]) assert.equal(normalize({ hook_event_name: 'StopFailure', error }, 'claude').event, 'error');
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'quota_auto_resume_disabled' }, 'claude').event, 'out_of_hearts');
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'quota_auto_resume_stale' }, 'claude').event, 'ready_for_input');
+  assert.equal(normalize({ hook_event_name: 'Notification', notification_type: 'quota_auto_resume_fired' }, 'claude'), null);
+  for (const agent of ['claude', 'codex']) assert.equal(normalize({ hook_event_name: 'SubagentStart', agent_id: 'child', agent_type: 'Explore' }, agent).event, 'subagent_started');
+  assert.equal(normalize({ hook_event_name: 'PostToolUseFailure', tool_name: 'Bash', error: 'Exit code 1' }, 'claude').event, 'tool_failed');
+  assert.equal(normalize({ hook_event_name: 'PostToolUseFailure', tool_name: 'Bash', is_interrupt: true }, 'claude'), null);
+  assert.equal(normalize({ hook_event_name: 'PostToolUseFailure', tool_name: 'Bash' }, 'codex'), null);
+  assert.equal(normalize({ hook_event_name: 'AfterTool', tool_response: { error: 'x' } }, 'gemini'), null);
+  for (const event of ['out_of_hearts', 'hearts_low']) assert.equal(DEFAULTS.events[event].enabled, true, event);
+  for (const event of ['tool_failed', 'subagent_started', 'turn_completed', 'error']) assert.equal(DEFAULTS.events[event].enabled, false, event);
+});
+
+test('the attention preset keeps the usage alarms on', t => {
+  const f = fixture(t);
+  updateConfiguration('preset', 'attention', f.env);
+  const { events } = f.settings().config;
+  for (const event of ['approval_required', 'input_required', 'ready_for_input', 'hearts_low', 'out_of_hearts']) assert.equal(events[event].enabled, true, event);
+  for (const event of ['session_started', 'prompt_submitted', 'turn_completed', 'tool_failed', 'session_ended']) assert.equal(events[event].enabled, false, event);
+});
+
+test('heart meter reads the tightest limit and cues each rise once per session', t => {
+  const config = structuredClone(DEFAULTS);
+  assert.equal(hearts({}, config), null);
+  assert.equal(hearts({ cost: { total_cost_usd: 3 } }, config), null);
+  assert.deepEqual(hearts({ rate_limits: { five_hour: { used_percentage: 50 } } }, config), { label: '5h', percent: 50, level: 0, text: '♥♥♥♡♡ 50% (5h)' });
+  assert.equal(hearts({ rate_limits: { five_hour: { used_percentage: 20 }, seven_day: { used_percentage: 85.4 } } }, config).text, '♥♡♡♡♡ 15% (7d) low');
+  assert.equal(hearts({ rate_limits: { five_hour: { used_percentage: 0 } } }, config).text, '♥♥♥♥♥ 100% (5h)');
+  assert.equal(hearts({ rate_limits: { five_hour: { used_percentage: 100 } } }, config).text, '♡♡♡♡♡ 0% (5h) out');
+  config.hearts.budgetUsd = 10;
+  assert.equal(hearts({ cost: { total_cost_usd: 9 }, rate_limits: { five_hour: { used_percentage: 40 } } }, config).text, '♥♡♡♡♡ $1.00 low');
+  assert.equal(hearts({ cost: { total_cost_usd: 12 } }, config).text, '♡♡♡♡♡ $0.00 out');
+  const f = fixture(t);
+  const { paths } = f.settings();
+  const at = level => meterCue({ level }, 'session', paths);
+  assert.equal(at(0), null);
+  assert.equal(at(1), 'hearts_low');
+  assert.equal(at(1), null);
+  assert.equal(at(2), 'out_of_hearts');
+  assert.equal(at(2), null);
+  assert.equal(at(0), null);
+  assert.equal(at(2), 'out_of_hearts');
+  assert.equal(meterCue({ level: 1 }, 'other', paths), 'hearts_low');
+  writeFileSync(f.env.AGENT_NAVI_CONFIG, JSON.stringify({ hearts: { lowPercent: 70 } }));
+  assert.equal(f.settings().config.hearts.lowPercent, 70);
+  for (const hearts of [{ lowPercent: 100 }, { budgetUsd: 0 }, { typo: 1 }, []]) {
+    writeFileSync(f.env.AGENT_NAVI_CONFIG, JSON.stringify({ hearts }));
+    assert.throws(() => f.settings(), /hearts/);
+  }
+});
+
+test('statusline always prints one line and exits cleanly, even on bad input', t => {
+  const f = fixture(t);
+  const env = { ...f.env, AGENT_NAVI_MUTE: '1' };
+  const run = input => spawnSync(process.execPath, [SCRIPT, 'statusline'], { env, input, encoding: 'utf8', timeout: 3000 });
+  const ok = run(JSON.stringify({ session_id: 's', rate_limits: { five_hour: { used_percentage: 90 } } }));
+  assert.equal(ok.status, 0);
+  assert.equal(ok.stdout, '🧚 ♥♡♡♡♡ 10% (5h) low\n');
+  for (const input of ['', 'bad json', '[]', '{}']) {
+    const result = run(input);
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '🧚\n');
+    assert.equal(result.stderr, '');
+  }
+  writeFileSync(f.env.AGENT_NAVI_CONFIG, '{');
+  assert.equal(run(JSON.stringify({ rate_limits: { five_hour: { used_percentage: 90 } } })).stdout, '🧚\n');
 });
