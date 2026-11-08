@@ -646,6 +646,23 @@ h2 em {
 .listen-section {
   padding-block:100px 80px;
 }
+.demo {
+  margin:0 0 40px;
+}
+.demo video {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:16/9;
+  background:var(--sunk);
+  border:1px solid var(--gold-line);
+  border-radius:4px;
+}
+.demo figcaption {
+  margin-top:12px;
+  font-size:15px;
+  color:var(--muted);
+}
 .sound-grid {
   display:grid;
   grid-template-columns:repeat(5,1fr);

@@ -6,6 +6,8 @@
 - Use the same unpinned Gemini CLI install command on the site as in the README.
 - Keep `LICENSE` as the standard MIT text so GitHub detects it; the audio and artwork exclusions remain in their notices and the README.
 - Add a one-line summary under the README banner.
+- Add a 36-second demo video of a real Claude Code session, with its sound cues, to the site, and a linked poster to the README. The media lives in `assets/demo` with its own notice.
+- Document running Agent Navi alongside its sibling plugins, one sound plugin per host.
 
 ## 0.4.0 - 2026-10-05
 
