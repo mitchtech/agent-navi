@@ -1,2 +1,2 @@
 # Asset validation and preview generation only; no Python runtime requirement.
-Pillow==12.3.0
+Pillow==13.0.0
