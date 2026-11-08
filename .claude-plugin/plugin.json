@@ -1,6 +1,6 @@
 {
   "name": "navi",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Navi sound notifications for coding agents and an independent Codex pet",
   "icon": "./assets/previews/icon.png",
   "author": {

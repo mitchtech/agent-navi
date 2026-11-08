@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-## 0.4.1 - 2026-10-28
+## 0.5.0 - 2026-11-07
+
+Hey! Listen! for destructive commands, a heart meter for usage limits, and optional lifecycle cues, plus a demo video and links to the whole sibling family.
 
 - Add a 512 px plugin listing icon, which `claude plugin validate` asks for.
 - Link the sibling projects Agent Johnny 5, Agent Warcraft, Agent Rocky, Agent Star Wars, and Agent StarCraft in the README, site footer, and control skill.
