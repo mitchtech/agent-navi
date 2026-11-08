@@ -13,7 +13,9 @@ notice records their provenance; it is not a license from Nintendo.
 
 `hey-listen.wav` is derived, not a new recording: the unmodified samples of
 `hey.wav`, 60 ms of silence, and the unmodified samples of `listen.wav`, in the
-same format.
+same format. `sources.json` records every clip's origin and hash, and
+`python3 scripts/build-audio.py` rebuilds the derived clip; `--check` verifies
+all of them without writing.
 
 | File | Clip | Format |
 |---|---|---|
