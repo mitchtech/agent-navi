@@ -35,11 +35,14 @@ pet files. Installing the extension never installs or selects a pet.
 |---|---|
 | SessionStart: startup, resume, clear | session_started |
 | BeforeAgent | prompt_submitted |
-| Notification: ToolPermission | approval_required |
+| Notification: ToolPermission | approval_required, with Hey! Listen! when `details.command` is destructive |
 | AfterAgent, outside a retry | turn_completed, off by default |
+| PreCompress | context_compacting, off by default |
+| SessionEnd | session_ended, off by default |
 
-Questions, ready notifications, and failures do not have mappings in this adapter.
-Unknown notifications, compaction, and retry completion are silent. Permission
+Questions, ready notifications, usage limits, and failures do not have mappings in
+this adapter. `AfterTool` is not registered because it runs for every tool call.
+Unknown notifications and retry completion are silent. Permission
 notifications are advisory; Navi never returns approval or denial decisions.
 Every hook returns neutral JSON, including invalid-input and configuration-error
 paths. Playback is detached, so the hook does not wait for a sound to finish.

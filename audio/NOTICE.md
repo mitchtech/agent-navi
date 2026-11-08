@@ -11,6 +11,10 @@ The original repository included these clips for personal, non-commercial use.
 This update preserves the same five recordings without modification. This
 notice records their provenance; it is not a license from Nintendo.
 
+`hey-listen.wav` is derived, not a new recording: the unmodified samples of
+`hey.wav`, 60 ms of silence, and the unmodified samples of `listen.wav`, in the
+same format.
+
 | File | Clip | Format |
 |---|---|---|
 | `hello.wav` | Hello! | 16-bit mono PCM WAV, 32 kHz |
@@ -18,6 +22,7 @@ notice records their provenance; it is not a license from Nintendo.
 | `listen.wav` | Listen! | 16-bit mono PCM WAV, 32 kHz |
 | `look.wav` | Look! | 16-bit mono PCM WAV, 32 kHz |
 | `watchout.wav` | Watch out! | 16-bit mono PCM WAV, 32 kHz |
+| `hey-listen.wav` | Hey! Listen! (derived) | 16-bit mono PCM WAV, 32 kHz |
 
 Use the user audio directory setting to supply your own replacement recordings
 without editing installed plugin files.

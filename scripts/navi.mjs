@@ -10,22 +10,50 @@ import { petMain, petStatus, printPetStatus } from './pet.mjs';
 
 const SCRIPT = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT), '..');
-const CLIPS = ['hello', 'hey', 'listen', 'look', 'watchout'];
+// hey-listen joins the original Hey! and Listen! recordings; see audio/NOTICE.md.
+const CLIPS = ['hello', 'hey', 'listen', 'look', 'watchout', 'hey-listen'];
 const CHANGES = new Set(['Bash', 'PowerShell', 'Write', 'Edit', 'NotebookEdit', 'apply_patch', 'run_shell_command', 'write_file', 'replace']);
+// Destructive shell and SQL patterns. Only the resulting boolean leaves normalize(); commands are never stored.
+const DANGER = [
+  /\brm\b(?=[^|;&\n]*\s(?:-[a-zA-Z]*[rR]|--recursive\b))(?=[^|;&\n]*\s(?:-[a-zA-Z]*f|--force\b))/,
+  /\bgit\b[^|;&\n]*\bpush\b[^|;&\n]*\s(?:--force(?![-\w])|-[a-zA-Z]*f\b)/,
+  /\bgit\b[^|;&\n]*\breset\b[^|;&\n]*\s--hard\b/,
+  /\bgit\b[^|;&\n]*\bclean\b[^|;&\n]*\s-[a-zA-Z]*f/,
+  /\b(?:drop\s+(?:table|database|schema)|truncate\s+table)\b/i,
+  /\bmkfs(?:\.\w+)?\b/,
+  /\bdd\b[^|;&\n]*\bof=/,
+  /\bchmod\b[^|;&\n]*\s-[a-zA-Z]*R[^|;&\n]*\s0?777\b/,
+  /\bRemove-Item\b(?=[^|;&\n]*\s-Recurse\b)(?=[^|;&\n]*\s-Force\b)/i,
+  /\b(?:rd|rmdir)\s+\/s\b/i,
+];
+// StopFailure error types that mean the account has run out of usage, not that the request was bad.
+const OUT_OF_HEARTS = new Set(['rate_limit', 'billing_error', 'account_on_hold']);
 export const DEFAULTS = {
   muted: false,
   audioDir: null,
   cooldownMs: 1000,
+  hearts: { budgetUsd: null, lowPercent: 80 },
   events: {
     session_started: { enabled: true, clips: ['hello'] },
     prompt_submitted: { enabled: true, clips: ['hey', 'look'] },
-    approval_required: { enabled: true, clips: ['hey'], changeClips: ['watchout'] },
+    approval_required: { enabled: true, clips: ['hey'], changeClips: ['watchout'], dangerClips: ['hey-listen'] },
     input_required: { enabled: true, clips: ['listen'] },
     ready_for_input: { enabled: true, clips: ['listen'] },
     turn_completed: { enabled: false, clips: ['listen'] },
+    hearts_low: { enabled: true, clips: ['watchout'] },
+    out_of_hearts: { enabled: true, clips: ['hey-listen'] },
     error: { enabled: false, clips: ['watchout'] },
+    tool_failed: { enabled: false, clips: ['watchout'] },
+    subagent_started: { enabled: false, clips: ['look'] },
+    context_compacting: { enabled: false, clips: ['listen'] },
+    session_ended: { enabled: false, clips: ['hey'] },
   },
 };
+const ATTENTION = ['approval_required', 'input_required', 'ready_for_input', 'hearts_low', 'out_of_hearts'];
+
+export function dangerous(command) {
+  return typeof command === 'string' && DANGER.some(pattern => pattern.test(command));
+}
 
 export function locations(env = process.env, platform = process.platform) {
   const home = homedir();
@@ -54,13 +82,19 @@ export function configuration(env = process.env) {
     if (Object.hasOwn(overrides, key)) config[key] = overrides[key];
   }
   if (typeof config.muted !== 'boolean' || (config.audioDir !== null && typeof config.audioDir !== 'string') || !Number.isFinite(config.cooldownMs) || config.cooldownMs < 0) throw new Error('Invalid configuration value');
+  if (Object.hasOwn(overrides, 'hearts')) {
+    if (!object(overrides.hearts) || Object.keys(overrides.hearts).some(key => !Object.hasOwn(config.hearts, key))) throw new Error('Invalid hearts settings');
+    Object.assign(config.hearts, overrides.hearts);
+    const { budgetUsd, lowPercent } = config.hearts;
+    if ((budgetUsd !== null && (!Number.isFinite(budgetUsd) || budgetUsd <= 0)) || !Number.isFinite(lowPercent) || lowPercent <= 0 || lowPercent >= 100) throw new Error('Invalid hearts settings');
+  }
   if (Object.hasOwn(overrides, 'events')) {
     if (!object(overrides.events)) throw new Error('events must be an object');
     for (const [event, settings] of Object.entries(overrides.events)) {
       const defaults = Object.hasOwn(config.events, event) ? config.events[event] : null;
       if (!defaults || !object(settings) || Object.keys(settings).some(key => !Object.hasOwn(defaults, key))) throw new Error(`Invalid settings for ${event}`);
       Object.assign(defaults, settings);
-      if (typeof defaults.enabled !== 'boolean' || !clips(defaults.clips) || (defaults.changeClips && !clips(defaults.changeClips))) throw new Error(`Invalid sounds for ${event}`);
+      if (typeof defaults.enabled !== 'boolean' || !clips(defaults.clips) || (defaults.changeClips && !clips(defaults.changeClips)) || (defaults.dangerClips && !clips(defaults.dangerClips))) throw new Error(`Invalid sounds for ${event}`);
     }
   }
   if (env.AGENT_NAVI_MUTE !== undefined) {
@@ -91,8 +125,7 @@ export function updateConfiguration(command, target, env = process.env) {
     value.events ||= {};
     for (const [event, rule] of Object.entries(DEFAULTS.events)) {
       value.events[event] ||= {};
-      value.events[event].enabled = target === 'attention'
-        ? ['approval_required', 'input_required', 'ready_for_input'].includes(event) : rule.enabled;
+      value.events[event].enabled = target === 'attention' ? ATTENTION.includes(event) : rule.enabled;
     }
   } else {
     if (!['mute', 'unmute'].includes(command)) throw new Error('Unknown configuration action');
@@ -118,7 +151,12 @@ export function status(env = process.env) {
 function printStatus(settings) {
   console.log(`Config: ${settings.paths.config}`);
   console.log(`Muted: ${settings.config.muted}${Object.hasOwn(settings.environmentOverrides, 'AGENT_NAVI_MUTE') ? ' (AGENT_NAVI_MUTE overrides the saved preference)' : ''}`);
-  for (const [event, rule] of Object.entries(settings.config.events)) console.log(`${event}: ${rule.enabled ? rule.clips.join('/') : 'off'}`);
+  printRules(settings.config);
+}
+
+function printRules(config) {
+  for (const [event, rule] of Object.entries(config.events)) console.log(`${event}: ${rule.enabled ? rule.clips.join('/') : 'off'}`);
+  console.log(`hearts: ${config.hearts.budgetUsd ? `$${config.hearts.budgetUsd} budget` : 'rate limits'}, low at ${config.hearts.lowPercent}%`);
 }
 
 export function normalize(payload, agent) {
@@ -130,11 +168,13 @@ export function normalize(payload, agent) {
     else if (native === 'BeforeAgent') event = 'prompt_submitted';
     else if (native === 'AfterAgent' && !payload.stop_hook_active) event = 'turn_completed';
     else if (native === 'Notification' && payload.notification_type === 'ToolPermission') event = 'approval_required';
+    else if (native === 'PreCompress') event = 'context_compacting';
+    else if (native === 'SessionEnd') event = 'session_ended';
     return event ? { event, agent, session: typeof payload.session_id === 'string' ? payload.session_id : 'default',
-      change: CHANGES.has(payload.details?.tool_name), fallback: false } : null;
+      change: CHANGES.has(payload.details?.tool_name), danger: event === 'approval_required' && dangerous(payload.details?.command), fallback: false } : null;
   }
-  // Only SessionStart/Stop suppress identified subagents; their approval prompts still need attention.
-  if (['SessionStart', 'Stop'].includes(native) && payload.agent_id) return null;
+  // Only lifecycle events suppress identified subagents; their approval prompts still need attention.
+  if (['SessionStart', 'Stop', 'SessionEnd', 'PreCompact'].includes(native) && payload.agent_id) return null;
   let event;
   let fallback = false;
   if (native === 'SessionStart') {
@@ -143,15 +183,21 @@ export function normalize(payload, agent) {
   } else if (native === 'UserPromptSubmit') event = 'prompt_submitted';
   else if (native === 'PermissionRequest') event = 'approval_required';
   else if (native === 'Stop' && !payload.stop_hook_active) event = 'turn_completed';
-  else if (agent === 'claude' && native === 'StopFailure') event = 'error';
+  else if (agent === 'claude' && native === 'StopFailure') event = OUT_OF_HEARTS.has(payload.error) ? 'out_of_hearts' : 'error';
+  else if (native === 'PreCompact') event = 'context_compacting';
+  else if (native === 'SessionEnd') event = 'session_ended';
+  else if (native === 'SubagentStart') event = 'subagent_started';
+  else if (agent === 'claude' && native === 'PostToolUseFailure' && !payload.is_interrupt) event = 'tool_failed';
   else if (agent === 'claude' && native === 'Notification') {
     if (payload.notification_type === 'permission_prompt') {
       event = 'approval_required';
       fallback = true;
-    } else if (payload.notification_type === 'idle_prompt') event = 'ready_for_input';
+    } else if (['idle_prompt', 'quota_auto_resume_stale'].includes(payload.notification_type)) event = 'ready_for_input';
     else if (['elicitation_dialog', 'elicitation_url_dialog', 'agent_needs_input'].includes(payload.notification_type)) event = 'input_required';
+    else if (payload.notification_type === 'quota_auto_resume_disabled') event = 'out_of_hearts';
   }
-  return event ? { event, agent, session: typeof payload.session_id === 'string' ? payload.session_id : 'default', change: CHANGES.has(payload.tool_name), fallback } : null;
+  return event ? { event, agent, session: typeof payload.session_id === 'string' ? payload.session_id : 'default', change: CHANGES.has(payload.tool_name),
+    danger: event === 'approval_required' && dangerous(payload.tool_input?.command), fallback } : null;
 }
 
 function executable(command, env) {
@@ -214,11 +260,51 @@ export function reserve(paths, event, config, now = Date.now(), preview = false)
   }
 }
 
+// Session records share the hashed-name scheme above, so the same daily cleanup removes them.
+function record(paths, ...parts) {
+  const path = join(paths.state, `${createHash('sha256').update(parts.join(':')).digest('hex')}.json`);
+  let value = {};
+  try { value = JSON.parse(readFileSync(path, 'utf8')) || {}; } catch (error) {
+    if (error.code !== 'ENOENT' && !(error instanceof SyntaxError)) throw error;
+  }
+  return { value, save: next => atomicWrite(path, next) };
+}
+
+// The tightest of the configured budget and any rate limit the host reports decides how many hearts are left.
+// Each of the five heart containers holds 20% of that limit.
+export function hearts(input, config) {
+  const used = [];
+  const cost = input?.cost?.total_cost_usd;
+  if (config.hearts.budgetUsd && Number.isFinite(cost)) used.push({ label: 'budget', percent: cost / config.hearts.budgetUsd * 100 });
+  for (const [key, label] of [['five_hour', '5h'], ['seven_day', '7d'], ['spend_limit', 'spend']]) {
+    const percent = input?.rate_limits?.[key]?.used_percentage;
+    if (Number.isFinite(percent)) used.push({ label, percent });
+  }
+  if (!used.length) return null;
+  const tightest = used.reduce((a, b) => (b.percent > a.percent ? b : a));
+  const level = tightest.percent >= 100 ? 2 : tightest.percent >= config.hearts.lowPercent ? 1 : 0;
+  const remaining = Math.min(100, Math.max(0, 100 - tightest.percent));
+  const full = Math.ceil(remaining / 20);
+  const left = tightest.label === 'budget'
+    ? `$${Math.max(0, config.hearts.budgetUsd - cost).toFixed(2)}` : `${Math.round(remaining)}% (${tightest.label})`;
+  return { ...tightest, level, text: `${'♥'.repeat(full)}${'♡'.repeat(5 - full)} ${left}${['', ' low', ' out'][level]}` };
+}
+
+const HEART_CUES = ['', 'hearts_low', 'out_of_hearts'];
+
+// Cue each rise in the meter's level once per session. Falling back below a level, as when a window resets, re-arms it.
+export function meterCue(meter, session, paths) {
+  const state = record(paths, 'statusline', session, 'hearts');
+  const previous = Number.isInteger(state.value.level) ? state.value.level : 0;
+  if (meter.level !== previous) state.save({ level: meter.level });
+  return meter.level > previous ? HEART_CUES[meter.level] : null;
+}
+
 export function playback(event, settings, options = {}) {
   const { config, paths } = settings;
   const rule = config.events[event.event];
   if (!rule || config.muted || !rule.enabled) return false;
-  const choices = event.change && rule.changeClips ? rule.changeClips : rule.clips;
+  const choices = event.danger && rule.dangerClips ? rule.dangerClips : event.change && rule.changeClips ? rule.changeClips : rule.clips;
   const clip = options.clip || choices[Math.floor(Math.random() * choices.length)];
   if (!CLIPS.includes(clip)) throw new Error('Unknown clip');
   const audio = join(config.audioDir, `${clip}.wav`);
@@ -256,15 +342,15 @@ function doctor() {
   const command = player(join(config.audioDir, 'hello.wav'));
   console.log(`Player: ${command ? command[0] : 'MISSING'}`);
   const missing = CLIPS.filter(clip => !existsSync(join(config.audioDir, `${clip}.wav`)));
-  console.log(`Clips: ${missing.length ? `missing ${missing.join(', ')}` : 'all five available'}`);
-  for (const [event, rule] of Object.entries(config.events)) console.log(`${event}: ${rule.enabled ? rule.clips.join('/') : 'off'}`);
+  console.log(`Clips: ${missing.length ? `missing ${missing.join(', ')}` : `all ${CLIPS.length} available`}`);
+  printRules(config);
   printPetStatus();
   return command && !missing.length ? 0 : 1;
 }
 
 export async function main(argv = process.argv.slice(2)) {
   const [command, ...args] = argv;
-  const quiet = command === 'hook' || command === '_play';
+  const quiet = ['hook', '_play', 'statusline'].includes(command);
   try {
     if (command === '_play') {
       playback(JSON.parse(args[0]), configuration());
@@ -323,11 +409,34 @@ export async function main(argv = process.argv.slice(2)) {
       if (event && !config.muted && config.events[event.event].enabled) schedule(event);
       return 0;
     }
+    if (command === 'statusline') {
+      // The status line must always print, so every failure degrades to the bare fairy.
+      let input = '';
+      process.stdin.setEncoding('utf8');
+      for await (const chunk of process.stdin) {
+        input += chunk;
+        if (input.length > 1024 * 1024) break;
+      }
+      let text = '🧚';
+      try {
+        const payload = JSON.parse(input);
+        const { config, paths } = configuration();
+        const meter = hearts(payload, config);
+        if (meter) {
+          text = `🧚 ${meter.text}`;
+          const session = typeof payload.session_id === 'string' ? payload.session_id : 'default';
+          const cue = meterCue(meter, session, paths);
+          if (cue && !config.muted && config.events[cue].enabled) schedule({ event: cue, agent: 'claude', session, change: false, danger: false, fallback: false });
+        }
+      } catch {}
+      console.log(text);
+      return 0;
+    }
     if (command === 'play' || command === 'preview') {
-      const { values, positionals } = parseArgs({ args, allowPositionals: true, options: { session: { type: 'string', default: 'default' }, tool: { type: 'string' } } });
+      const { values, positionals } = parseArgs({ args, allowPositionals: true, options: { session: { type: 'string', default: 'default' }, tool: { type: 'string' }, command: { type: 'string' } } });
       if (positionals.length !== 1) throw new Error(`Usage: agent-navi ${command} ${command === 'play' ? 'EVENT' : 'CLIP'}`);
       const settings = configuration();
-      const event = { event: positionals[0], agent: 'generic', session: values.session, change: CHANGES.has(values.tool) };
+      const event = { event: positionals[0], agent: 'generic', session: values.session, change: CHANGES.has(values.tool), danger: dangerous(values.command) };
       if (command === 'preview') {
         if (!CLIPS.includes(positionals[0])) throw new Error(`Clips: ${CLIPS.join(', ')}`);
         event.event = 'session_started';
@@ -344,7 +453,7 @@ export async function main(argv = process.argv.slice(2)) {
       return 0;
     }
     if (command && !['--help', '-h'].includes(command)) throw new Error(`Unknown command: ${command}`);
-    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex|gemini\nagent-navi play EVENT [--session ID] [--tool TOOL]\nagent-navi preview hello|hey|listen|look|watchout\nagent-navi pet install [--replace]\nagent-navi pet status [--json]\nagent-navi pet uninstall\nagent-navi doctor [--pet]\nagent-navi config [--effective]\nagent-navi status [--json]\nagent-navi mute EVENT|all\nagent-navi unmute EVENT|all\nagent-navi preset default|attention\nagent-navi list [--json]');
+    console.log('Agent Navi\n\nagent-navi hook --agent claude|codex|gemini\nagent-navi play EVENT [--session ID] [--tool TOOL] [--command CMD]\nagent-navi preview hello|hey|listen|look|watchout|hey-listen\nagent-navi pet install [--replace]\nagent-navi pet status [--json]\nagent-navi pet uninstall\nagent-navi doctor [--pet]\nagent-navi config [--effective]\nagent-navi status [--json]\nagent-navi mute EVENT|all\nagent-navi unmute EVENT|all\nagent-navi preset default|attention\nagent-navi statusline  (reads Claude Code status line JSON on stdin)\nagent-navi list [--json]');
     return 0;
   } catch (error) {
     if (!quiet) console.error(`Agent Navi: ${error.message}`);
