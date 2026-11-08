@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-28
+
+- Add a 512 px plugin listing icon, which `claude plugin validate` asks for.
+- Link the sibling projects Agent Johnny 5, Agent Warcraft, Agent Rocky, Agent Star Wars, and Agent StarCraft in the README, site footer, and control skill.
 - Document Claude Code installation with terminal `claude plugin` commands, matching Codex and Gemini CLI; the in-session `/plugin` form remains noted.
 - Use the same unpinned Gemini CLI install command on the site as in the README.
 
