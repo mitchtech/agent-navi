@@ -12,32 +12,52 @@ are required beyond Node.js 22 or newer.
 | Prompt submitted | `UserPromptSubmit` | Same | `BeforeAgent` | `play prompt_submitted` |
 | Approval required | `PermissionRequest`, delayed `Notification.permission_prompt` fallback | `PermissionRequest` | `Notification.ToolPermission` | `play approval_required` |
 | Input required | `Notification`: elicitation_dialog, elicitation_url_dialog, agent_needs_input | No native mapping in this release | No native mapping | `play input_required` |
-| Ready for input | `Notification.idle_prompt` | No native mapping | No native mapping | `play ready_for_input` |
+| Ready for input | `Notification`: idle_prompt, quota_auto_resume_stale | No native mapping | No native mapping | `play ready_for_input` |
 | Turn completed | `Stop`, optional | `Stop`, optional | `AfterAgent`, optional | `play turn_completed` |
-| Error | `StopFailure`, optional | No native mapping in this release | No native mapping | `play error` |
+| Out of hearts | `StopFailure`: rate_limit, billing_error, account_on_hold; `Notification.quota_auto_resume_disabled`; heart meter at 100% | No native mapping | No native mapping | `play out_of_hearts` |
+| Hearts low | Heart meter threshold | No native mapping | No native mapping | `play hearts_low` |
+| Error | `StopFailure`, any other type, optional | No native mapping in this release | No native mapping | `play error` |
+| Tool failed | `PostToolUseFailure` (not interrupts), optional | No native mapping | Not registered | `play tool_failed` |
+| Subagent started | `SubagentStart`, optional | `SubagentStart`, optional | No native mapping | `play subagent_started` |
+| Context compacting | `PreCompact`, optional | `PreCompact`, optional | `PreCompress`, optional | `play context_compacting` |
+| Session ended | `SessionEnd`, optional | `SessionEnd`, optional | `SessionEnd`, optional | `play session_ended` |
 
-The current Codex hook documentation does not list Claude's `Notification` or
-`StopFailure` events. Agent Navi does not infer questions from assistant prose
-or inspect transcripts. Other agents can map their own notifications to the
-generic interface. Gemini CLI has a separately packaged native extension;
-OpenCode uses the generic interface in this release.
+Gemini's `AfterTool` fires for every tool call, so it is not registered: a Node
+process per tool call costs more than an optional cue is worth.
+
+The current Codex hook documentation does not list Claude's `Notification`,
+`StopFailure`, or `PostToolUseFailure` events. Codex CLI 0.163.0 recognizes
+`PreCompact`, `SessionEnd`, and `SubagentStart`; older releases ignore those
+registrations. Codex adds plain-text `SubagentStart` stdout to the subagent's
+context, so that hook prints nothing at all. Agent Navi does not infer questions
+from assistant prose or inspect transcripts. Other agents can map their own
+notifications to the generic interface. Gemini CLI has a separately packaged
+native extension; OpenCode uses the generic interface in this release.
 
 Shell/file-change approval cues recognize `Bash`, `PowerShell`, `Write`, `Edit`,
 `NotebookEdit`, Codex's `apply_patch`, and Gemini's `run_shell_command`,
 `write_file`, and `replace` when a notification supplies tool identity. Other tools use the general approval
-sound. Classification uses tool identity, not command analysis. An MCP tool
-that writes data is not automatically classified as a file-change tool.
+sound. An MCP tool that writes data is not automatically classified as a
+file-change tool.
+
+Destructive-command cues read the approval's command: `tool_input.command` for
+Claude Code and Codex, and `details.command` for Gemini when present. A fixed
+pattern list (see the README) decides a yes/no flag inside the hook process;
+the command itself is never passed to the playback worker, logged, or stored.
+Pattern matching is a convenience cue, not a security boundary: an obfuscated
+or indirect destructive command can still get the ordinary change cue.
 
 The documented Claude permission notification has no tool details, so its
 fallback uses Hey!; `PermissionRequest` supplies the tool-aware cue. A delayed
 fallback within 10 seconds of an approval cue is silent. Independent rapid
 approval events can be suppressed by the configured cooldown or an active clip.
 
-`PreToolUse` and `SubagentStop` are not registered. `Stop` means the main agent
+`PreToolUse`, `PostToolUse`, and `SubagentStop` are not registered. `Stop` means the main agent
 finished responding, not necessarily that the entire task succeeded. Continuing
-Stop hooks (`stop_hook_active`) and identified subagent SessionStart/Stop payloads
-are ignored. Approvals from subagents still need attention and remain eligible.
-Compaction does not play Hello!.
+Stop hooks (`stop_hook_active`) and identified subagent SessionStart, Stop,
+PreCompact, and SessionEnd payloads are ignored. Approvals from subagents still
+need attention and remain eligible. A `SessionStart` after compaction does not
+replay Hello!; the optional `context_compacting` cue covers compaction.
 
 ## Host packaging
 

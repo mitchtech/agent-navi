@@ -59,6 +59,36 @@
           }
         ]
       }
+    ],
+    "PreCompress": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-precompress",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "agent-navi-sessionend",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.AGENT_NAVI_PLUGIN_ROOT,'scripts','navi.mjs')).href).then(m=>m.main(['hook','--agent','gemini'])).then(c=>{process.exitCode=c}).catch(()=>{console.log('{}')})\"",
+            "env": {
+              "AGENT_NAVI_PLUGIN_ROOT": "${extensionPath}"
+            },
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   }
 }

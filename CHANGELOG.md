@@ -4,6 +4,10 @@
 
 - Document Claude Code installation with terminal `claude plugin` commands, matching Codex and Gemini CLI; the in-session `/plugin` form remains noted.
 - Use the same unpinned Gemini CLI install command on the site as in the README.
+- Play "Hey! Listen!" when an approval's command is destructive (`rm -rf`, force push, `git reset --hard`, `DROP TABLE`, and similar). Only a yes/no flag leaves the hook; the command is never stored. The new `hey-listen.wav` joins the original Hey! and Listen! samples, and `dangerClips` configures it. Custom audio directories now need `hey-listen.wav` too.
+- Map Claude Code `StopFailure` usage errors (`rate_limit`, `billing_error`, `account_on_hold`) and `quota_auto_resume_disabled` to `out_of_hearts` (Hey! Listen!); other API errors keep the optional `error` cue. `quota_auto_resume_stale` plays `ready_for_input`.
+- Add `agent-navi statusline`, a heart meter for Claude Code's status line that shows the tightest of the 5-hour, 7-day, and spend limits, or an optional `hearts.budgetUsd`, as five heart containers. It plays `hearts_low` (Watch out!) once per session at `hearts.lowPercent` and `out_of_hearts` at 100%.
+- Add optional `tool_failed` (Claude `PostToolUseFailure`), `subagent_started` (Claude and Codex `SubagentStart`), `context_compacting` (`PreCompact`, Gemini `PreCompress`), and `session_ended` (`SessionEnd`) cues, off by default. The attention preset now also keeps the usage alarms on.
 
 ## 0.4.0 - 2026-10-05
 

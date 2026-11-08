@@ -648,7 +648,7 @@ h2 em {
 }
 .sound-grid {
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:14px;
 }
 .sound {
@@ -689,7 +689,7 @@ h2 em {
   font-size:15px;
   color:var(--muted);
 }
-.sound[data-clip=watchout] .sound-name {
+.sound[data-clip=watchout] .sound-name, .sound[data-clip=hey-listen] .sound-name {
   color:var(--warn);
 }
 .play-icon {
