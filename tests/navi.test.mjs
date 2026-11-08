@@ -382,8 +382,9 @@ test('playback state never stores commands, sessions, or prompts in readable for
   assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(settings.paths.state, files[0]), 'utf8'))), ['time']);
 });
 
-test('every configured clip ships as audio and the catalog lists every bundled WAV', () => {
+test('every configured clip ships as audio and the catalog matches the provenance manifest', () => {
   const { clips } = JSON.parse(spawnSync(process.execPath, [SCRIPT, 'list', '--json'], { encoding: 'utf8' }).stdout);
+  assert.deepEqual(json('audio/sources.json').clips.map(clip => clip.id), clips);
   assert.deepEqual(readdirSync(join(ROOT, 'audio')).filter(name => name.endsWith('.wav')).map(name => name.slice(0, -4)).sort(), [...clips].sort());
   for (const clip of Object.values(DEFAULTS.events).flatMap(rule => [...rule.clips, ...(rule.changeClips || []), ...(rule.dangerClips || [])])) assert.ok(clips.includes(clip), clip);
   for (const clip of clips) assert.equal(readFileSync(join(ROOT, 'audio', `${clip}.wav`)).subarray(0, 4).toString(), 'RIFF', clip);

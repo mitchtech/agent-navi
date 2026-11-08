@@ -1,0 +1,50 @@
+{
+  "description": "Provenance for the bundled clips. The five original recordings are canonical and unmodified; scripts/build-audio.py rebuilds the derived clips from them and verifies every clip with --check.",
+  "format": {
+    "sampleRate": 32000,
+    "channels": 1,
+    "sampleWidth": 2
+  },
+  "clips": [
+    {
+      "id": "hello",
+      "line": "Hello!",
+      "origin": "Bundled with the initial commit of the original claude-navi plugin (55b65a8); the upstream recording source was not recorded. Preserved without modification.",
+      "output": "b35d2a51beb99338a231630f26cf20bda11ff645636b23fefa80384c39022403"
+    },
+    {
+      "id": "hey",
+      "line": "Hey!",
+      "origin": "Bundled with the initial commit of the original claude-navi plugin (55b65a8); the upstream recording source was not recorded. Preserved without modification.",
+      "output": "0b230da60c91f1df884a55ac1b3702127b32adc91c44726ff5e1940bee039ce5"
+    },
+    {
+      "id": "listen",
+      "line": "Listen!",
+      "origin": "Bundled with the initial commit of the original claude-navi plugin (55b65a8); the upstream recording source was not recorded. Preserved without modification.",
+      "output": "79a90b6e60c8c81c91b6725b1be207442cccae6defb6de02811a6743f04db44a"
+    },
+    {
+      "id": "look",
+      "line": "Look!",
+      "origin": "Bundled with the initial commit of the original claude-navi plugin (55b65a8); the upstream recording source was not recorded. Preserved without modification.",
+      "output": "90c31486d1daefbe1139e3613303279d13179fdd7724b17fd8d40a484b3e9d24"
+    },
+    {
+      "id": "watchout",
+      "line": "Watch out!",
+      "origin": "Bundled with the initial commit of the original claude-navi plugin (55b65a8); the upstream recording source was not recorded. Preserved without modification.",
+      "output": "52da0ca91d6017d837c4bc84eff5973b4c1ef7f4f209e8c0014023b856fa706f"
+    },
+    {
+      "id": "hey-listen",
+      "line": "Hey! Listen!",
+      "derivedFrom": [
+        "hey",
+        "listen"
+      ],
+      "gapMs": 60,
+      "output": "e310f2e83d711a92d9d7ee9b7aa73f5cc965c455be1e4045991cdf0b2e64fb82"
+    }
+  ]
+}
