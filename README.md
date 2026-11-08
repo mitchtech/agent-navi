@@ -9,6 +9,13 @@
   <a href="pets/navi/LICENSE.txt"><img src="https://img.shields.io/badge/artwork-CC_BY_4.0-8fd8ff?labelColor=13221c" alt="Artwork: CC BY 4.0"></a>
 </p>
 
+<p align="center"><b>Your coding agent says <i>Hey! Listen!</i> when it needs you.</b></p>
+
+<p align="center">
+  <a href="https://mitchtech.github.io/agent-navi/#demo"><img src="assets/demo/demo-poster.jpg" width="720" alt="Agent Navi demo: a Claude Code session where Navi says Hey! as the prompt is submitted. Watch the 36-second video with sound."></a><br>
+  <sub><a href="https://mitchtech.github.io/agent-navi/#demo">Watch the 36-second demo with sound</a></sub>
+</p>
+
 <p align="center">
   <a href="https://mitchtech.github.io/agent-navi/"><b>Preview Navi and the sounds</b></a> ·
   <a href="https://github.com/mitchtech/agent-navi/releases/latest/download/agent-navi-pet.zip">Download the pet</a> ·
@@ -108,6 +115,19 @@ The repository root is for shared sources and discovery; Gemini's executable
 hook file is included in the generated extension, not the source root. Install
 published release assets rather than linking the repository root or a raw Git
 branch. See [Gemini integration](docs/gemini.md).
+
+### Running alongside the sibling plugins
+
+Agent Navi, [Agent Johnny 5](https://github.com/mitchtech/agent-johnny5),
+[Agent Warcraft](https://github.com/mitchtech/agent-warcraft),
+[Agent Star Wars](https://github.com/mitchtech/agent-starwars),
+[Agent Rocky](https://github.com/mitchtech/agent-rocky), and
+[Agent StarCraft](https://github.com/mitchtech/agent-starcraft) respond to the
+same events. Enable one per host unless you want a fairy and a robot talking
+over each other. For example, `claude plugin disable navi@agent-navi` for
+Claude Code, or `enabled = false` under `[plugins."navi@agent-navi"]` in
+`~/.codex/config.toml` for Codex. Pets install independently, so a Navi pet can
+keep flying while another plugin does the talking.
 
 ### Local development
 

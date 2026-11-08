@@ -13,6 +13,10 @@
 - Add `agent-navi statusline`, a heart meter for Claude Code's status line that shows the tightest of the 5-hour, 7-day, and spend limits, or an optional `hearts.budgetUsd`, as five heart containers. It plays `hearts_low` (Watch out!) once per session at `hearts.lowPercent` and `out_of_hearts` at 100%.
 - Add optional `tool_failed` (Claude `PostToolUseFailure`), `subagent_started` (Claude and Codex `SubagentStart`), `context_compacting` (`PreCompact`, Gemini `PreCompress`), and `session_ended` (`SessionEnd`) cues, off by default. The attention preset now also keeps the usage alarms on.
 - Record every clip's origin and hash in `audio/sources.json`. `scripts/build-audio.py` rebuilds `hey-listen.wav` byte for byte from the original samples using only the Python standard library, and CI and releases run its offline `--check`. The five original recordings stay unmodified; unlike the sibling plugins, they are not loudness-normalized.
+- Keep `LICENSE` as the standard MIT text so GitHub detects it; the audio and artwork exclusions remain in their notices and the README.
+- Add a one-line summary under the README banner.
+- Add a 36-second demo video of a real Claude Code session, with its sound cues, to the site, and a linked poster to the README. The media lives in `assets/demo` with its own notice.
+- Document running Agent Navi alongside its sibling plugins, one sound plugin per host.
 
 ## 0.4.0 - 2026-10-05
 

@@ -13,5 +13,6 @@ writeFileSync(join(out, 'index.html'), html);
 cpSync(join(root, 'pets', 'navi'), join(out, 'pet'), { recursive: true });
 cpSync(join(root, 'audio'), join(out, 'audio'), { recursive: true });
 cpSync(join(root, 'assets', 'previews'), join(out, 'previews'), { recursive: true });
+cpSync(join(root, 'assets', 'demo'), join(out, 'demo'), { recursive: true });
 if (existsSync(join(root, 'assets', 'exports'))) cpSync(join(root, 'assets', 'exports'), join(out, 'exports'), { recursive: true });
 console.log(`Built site: ${out}`);
