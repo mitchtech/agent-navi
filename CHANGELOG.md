@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.1 - 2026-11-08
+
+- Update development-only Pillow to 13.0.0 to resolve decoder security advisories. Revalidate pet atlases, web exports, and generated previews; sound runtimes remain dependency-free.
+
 ## 0.5.0 - 2026-11-07
 
 Hey! Listen! for destructive commands, a heart meter for usage limits, and optional lifecycle cues, plus a demo video and links to the whole sibling family.
