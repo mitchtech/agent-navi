@@ -16,8 +16,9 @@ changelog, and run the contributor checks. After its PR merges into `main`, tag
 the merged commit and push the tag:
 
 ```bash
-git tag v0.4.0
-git push origin v0.4.0
+release_tag="v$(node -p "require('./package.json').version")"
+git tag "$release_tag"
+git push origin "$release_tag"
 ```
 
 The release workflow checks Node 22/24 on macOS, Linux, and Windows, including
@@ -120,3 +121,15 @@ its validation and crawl schedule. No issue, email, or social outreach is needed
 Use authenticated GitHub traffic and release-download counts for aggregate
 visibility checks. Those counts can include development checks and are not
 reliable measurements of unique users. Keep the website free of analytics.
+
+## Automated maintenance
+
+PR checks run the Node 22/24 matrix on Linux, macOS, and Windows, including
+preview pixel verification and a full release package build. New commits
+cancel superseded checks on the same PR. Release publication still requires
+matching manifest/tag versions and a commit merged into `main`.
+
+Dependabot checks Python build dependencies and GitHub Actions weekly, with
+one grouped PR per ecosystem. Security updates remain enabled independently.
+Actions use immutable commit pins with version comments so Dependabot can
+update them. Review required checks before merging dependency updates.
